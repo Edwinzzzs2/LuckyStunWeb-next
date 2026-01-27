@@ -24,13 +24,13 @@ export function NavigationContent({
   return (
     <main ref={contentScrollRef} className="flex-1 overflow-y-auto px-4 lg:px-7 py-6">
       <div className="max-w-[1240px] mx-auto">
-        <div className="space-y-8">
+        <div className="space-y-6">
           {sections.map((section) => (
             <section key={section.id} id={`sec-${section.id}`} className="scroll-mt-20">
               <div className="flex items-center justify-between gap-4">
-                <div className="text-[15px] font-semibold">{section.name}</div>
+                <div className="text-[16px] leading-6 font-semibold">{section.name}</div>
               </div>
-              <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {section.sites.map((site, idx) => {
                   const targetUrl = resolveTargetUrl(site, network)
                   return (
