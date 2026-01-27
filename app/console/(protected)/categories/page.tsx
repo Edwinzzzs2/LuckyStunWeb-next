@@ -202,6 +202,14 @@ export default function ConsoleCategoriesPage() {
           {rows.map(({ node, depth }) => {
             const hasChildren = node.children?.length > 0
             const expanded = expandedIds.has(node.id)
+            const rawIcon = String(node.icon || '').trim()
+            const iconClass = rawIcon
+              ? rawIcon.includes('iconfont')
+                ? rawIcon
+                : rawIcon.startsWith('icon-')
+                  ? `iconfont ${rawIcon}`
+                  : ''
+              : ''
             return (
               <div key={node.id} className="grid grid-cols-12 gap-3 px-6 py-3">
                 <div className="col-span-6 flex min-w-0 items-center gap-2">
@@ -234,7 +242,9 @@ export default function ConsoleCategoriesPage() {
                 </div>
 
                 <div className="col-span-3 flex min-w-0 items-center gap-2">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-base">{node.icon || '📁'}</span>
+                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-base">
+                    {iconClass ? <i className={iconClass} aria-hidden="true" /> : rawIcon || '📁'}
+                  </span>
                   <div className="min-w-0">
                     <div className="truncate text-sm font-medium">{node.en_name || '-'}</div>
                     <div className="truncate text-xs text-muted-foreground">ID: {node.id}</div>
@@ -304,8 +314,8 @@ export default function ConsoleCategoriesPage() {
               </select>
             </div>
             <div className="grid gap-2">
-              <label className="text-sm font-medium">图标（可用 Emoji）</label>
-              <Input value={form.icon} onChange={(e) => setForm((p) => ({ ...p, icon: e.target.value }))} placeholder="例如：⭐" />
+              <label className="text-sm font-medium">图标（支持 Emoji 或 iconfont）</label>
+              <Input value={form.icon} onChange={(e) => setForm((p) => ({ ...p, icon: e.target.value }))} placeholder="例如：⭐ 或 icon-changyongfuwu" />
             </div>
             <div className="grid gap-2">
               <label className="text-sm font-medium">排序（数值越小越靠前）</label>

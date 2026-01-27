@@ -80,7 +80,7 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="min-w-0 truncate text-sm font-medium">{site.title}</div>
+                <div className="min-w-0 truncate text-[13px] font-medium">{site.title}</div>
                 <div className="mt-1 text-xs text-muted-foreground truncate" title={site.desc || ''}>
                   {site.desc || ''}
                 </div>

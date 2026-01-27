@@ -1,10 +1,11 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import type { Site } from '@/data/navigation/types'
 import { SITE_ICON_PLACEHOLDER } from '@/data/navigation/mock'
 import { normalizeUrl } from '@/lib/utils'
+import type { MenuGroup } from '@/data/navigation/types'
 import { NavigationShell } from '@/app/components/navigation/navigation-shell'
 import { AppSidebar } from '@/app/components/navigation/app-sidebar'
 import { AppHeader } from '@/app/components/navigation/app-header'
@@ -19,6 +20,7 @@ export default function Page() {
     useNavigationPreferences()
   const [search, setSearch] = useState('')
   const [activeSectionId, setActiveSectionId] = useState<string>('')
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const contentScrollRef = useRef<HTMLDivElement | null>(null)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const { setTheme, resolvedTheme } = useTheme()
@@ -39,6 +41,18 @@ export default function Page() {
       .filter((sec) => sec.sites.length > 0)
   }, [search, sections])
 
+  const sectionDepths = useMemo(() => {
+    const map: Record<string, number> = {}
+    function walk(items: MenuGroup['items'], depth: number) {
+      for (const it of items) {
+        if (it.sectionId) map[it.sectionId] = Math.max(depth, map[it.sectionId] ?? 0)
+        if (Array.isArray(it.children) && it.children.length) walk(it.children, depth + 1)
+      }
+    }
+    for (const g of menuGroups) walk(g.items, 0)
+    return map
+  }, [menuGroups])
+
   function resolveTargetUrl(site: Site, n: NetworkType) {
     const main = normalizeUrl(site.url)
     const backup = normalizeUrl(site.backup_url)
@@ -50,8 +64,29 @@ export default function Page() {
 
   function scrollToSection(id: string) {
     setActiveSectionId(id)
+
     const anchor = document.getElementById(`sec-${id}`)
-    if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const container = contentScrollRef.current
+
+    const run = () => {
+      const header = document.querySelector('header') as HTMLElement | null
+      const headerOffset = header?.offsetHeight ?? 56
+      const extraOffset = 12
+      if (!anchor || !container) {
+        if (anchor) anchor.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        return
+      }
+
+      const containerRect = container.getBoundingClientRect()
+      const anchorRect = anchor.getBoundingClientRect()
+      const nextTop = anchorRect.top - containerRect.top + container.scrollTop - headerOffset - extraOffset
+      container.scrollTo({ top: Math.max(0, nextTop), behavior: 'smooth' })
+    }
+
+    const shouldDelay = mobileSidebarOpen
+    if (shouldDelay) setMobileSidebarOpen(false)
+    if (shouldDelay) requestAnimationFrame(() => requestAnimationFrame(run))
+    else run()
   }
 
   function toggleTheme() {
@@ -63,8 +98,6 @@ export default function Page() {
     const next = '/console'
     window.open(next, '_blank', 'noopener,noreferrer')
   }
-
-  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
 
   useHotkeys({
     onCommandK: () => {
@@ -113,11 +146,15 @@ export default function Page() {
           contentScrollRef={contentScrollRef}
           resolveTargetUrl={resolveTargetUrl}
           placeholderLogoUrl={SITE_ICON_PLACEHOLDER}
+          sectionDepths={sectionDepths}
         />
       </NavigationShell>
 
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent side="left" className="w-[280px] p-0" aria-label="移动端侧边栏">
+          <SheetHeader className="sr-only">
+            <SheetTitle>菜单</SheetTitle>
+          </SheetHeader>
           <AppSidebar
             variant="mobile"
             menuGroups={menuGroups}

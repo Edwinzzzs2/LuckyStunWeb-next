@@ -31,6 +31,8 @@ export function AppSidebar({
   onRequestClose,
   className,
 }: AppSidebarProps) {
+  const navPaddingClass = variant === 'desktop' ? 'px-3' : 'px-2'
+  const groupSpacingClass = variant === 'desktop' ? 'space-y-4' : 'space-y-3'
   const containerClassName =
     variant === 'desktop'
       ? 'hidden lg:flex w-[264px] shrink-0 flex-col bg-background text-foreground border-r border-border'
@@ -40,7 +42,7 @@ export function AppSidebar({
     const active = item.sectionId && activeSectionId === item.sectionId
     const children = hasChildren(item)
     const expanded = children ? expandedMenus.has(item.id) : false
-    const indentClassName = depth > 0 ? 'ml-8' : ''
+    const indentClassName = depth > 0 ? 'ml-4' : ''
 
     return (
       <div key={item.id} className={cn(indentClassName)}>
@@ -48,7 +50,7 @@ export function AppSidebar({
           type="button"
           variant="ghost"
           className={cn(
-            'w-full justify-start gap-3 px-3 py-2 h-auto rounded-xl text-left',
+            'w-full justify-start gap-2 px-2 py-1.5 h-auto rounded-lg text-left',
             active ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-accent hover:text-accent-foreground'
           )}
           onClick={() => {
@@ -72,7 +74,7 @@ export function AppSidebar({
           {children ? <span className={cn('ml-auto transition opacity-70', expanded ? 'rotate-180' : '')}>▾</span> : null}
         </Button>
         {children ? (
-          <div className={cn('ml-8 pl-3 border-l border-border space-y-1', expanded ? 'mt-1' : 'hidden')}>
+          <div className={cn('ml-4 pl-2 border-l border-border space-y-1', expanded ? 'mt-0.5' : 'hidden')}>
             {item.children!.map((child) => renderItem(child, depth + 1))}
           </div>
         ) : null}
@@ -86,12 +88,12 @@ export function AppSidebar({
         <div className="h-8 w-8 rounded-lg bg-brand-600/95 flex items-center justify-center font-semibold text-white">K</div>
         <div className="font-semibold tracking-wide">NavSphere导航</div>
       </div>
-      <nav className="flex-1 px-3 py-4 overflow-auto" aria-label="导航">
-        <div className="space-y-5">
+      <nav className={cn('flex-1 py-3 overflow-auto', navPaddingClass)} aria-label="导航">
+        <div className={cn(groupSpacingClass)}>
           {menuGroups.map((group) => (
             <div key={group.label} className="space-y-1">
-              <div className="px-3 text-xs text-muted-foreground">{group.label}</div>
-              <div className="space-y-1">
+              <div className={cn('text-xs text-muted-foreground', variant === 'desktop' ? 'px-3' : 'px-2')}>{group.label}</div>
+              <div className="mt-1 space-y-1">
                 {group.items.map((item) => (
                   <div key={item.id}>{renderItem(item, 0)}</div>
                 ))}

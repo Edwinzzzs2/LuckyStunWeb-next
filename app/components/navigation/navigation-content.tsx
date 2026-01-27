@@ -12,6 +12,7 @@ type NavigationContentProps = {
   contentScrollRef: RefObject<HTMLDivElement | null>
   resolveTargetUrl: (site: Site, network: NetworkType) => string
   placeholderLogoUrl: string
+  sectionDepths?: Record<string, number>
 }
 
 export function NavigationContent({
@@ -20,17 +21,40 @@ export function NavigationContent({
   contentScrollRef,
   resolveTargetUrl,
   placeholderLogoUrl,
+  sectionDepths,
 }: NavigationContentProps) {
   return (
     <main ref={contentScrollRef} className="flex-1 overflow-y-auto px-4 lg:px-7 py-6">
       <div className="max-w-[1240px] mx-auto">
-        <div className="space-y-6">
+        <div className="space-y-4">
           {sections.map((section) => (
             <section key={section.id} id={`sec-${section.id}`} className="scroll-mt-20">
               <div className="flex items-center justify-between gap-4">
-                <div className="text-[16px] leading-6 font-semibold">{section.name}</div>
+                <div
+                  className={
+                    (sectionDepths?.[section.id] ?? 0) > 0
+                      ? 'text-[14px] leading-5 font-medium text-muted-foreground flex items-center gap-2'
+                      : 'text-[18px] leading-7 font-semibold flex items-center gap-2'
+                  }
+                >
+                  <i
+                    className={
+                      (sectionDepths?.[section.id] ?? 0) > 0
+                        ? `iconfont ${section.icon || 'icon-daohang2'} text-[16px] opacity-70`
+                        : `iconfont ${section.icon || 'icon-daohang2'} text-[18px] opacity-80`
+                    }
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">{section.name}</span>
+                </div>
               </div>
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div
+                className={
+                  (sectionDepths?.[section.id] ?? 0) > 0
+                    ? 'mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+                    : 'mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'
+                }
+              >
                 {section.sites.map((site, idx) => {
                   const targetUrl = resolveTargetUrl(site, network)
                   return (
