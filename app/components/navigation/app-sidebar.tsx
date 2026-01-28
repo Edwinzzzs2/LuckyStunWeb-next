@@ -33,7 +33,7 @@ export function AppSidebar({
   className,
 }: AppSidebarProps) {
   const navPaddingClass = variant === 'desktop' ? 'px-3' : 'px-2'
-  const groupSpacingClass = variant === 'desktop' ? 'space-y-4' : 'space-y-3'
+  const groupSpacingClass = variant === 'desktop' ? 'space-y-6' : 'space-y-4'
   const containerClassName =
     variant === 'desktop'
       ? 'hidden lg:flex w-[264px] shrink-0 flex-col bg-background text-foreground border-r border-border'
@@ -88,15 +88,15 @@ export function AppSidebar({
   return (
     <aside className={cn(containerClassName, className)} aria-label="侧边栏">
       <div className="h-14 px-5 flex items-center gap-3 border-b border-border">
-        <div className="h-8 w-8 rounded-lg bg-brand-600/95 flex items-center justify-center font-semibold text-white">K</div>
-        <div className="font-semibold tracking-wide">NavSphere导航</div>
+        <div className="h-8 w-8 rounded-lg bg-brand-600/95 flex items-center justify-center font-semibold text-white">L</div>
+        <div className="font-semibold tracking-wide">LuckyStunWeb</div>
       </div>
-      <nav className={cn('flex-1 py-3 overflow-auto', navPaddingClass)} aria-label="导航">
+      <nav className={cn('flex-1 py-3 overflow-auto custom-scrollbar', navPaddingClass)} aria-label="导航">
         <div className={cn(groupSpacingClass)}>
           {menuGroups.map((group) => (
             <div key={group.label} className="space-y-1">
               <div className={cn('text-xs text-muted-foreground', variant === 'desktop' ? 'px-3' : 'px-2')}>{group.label}</div>
-              <div className="mt-1 space-y-1">
+              <div className="mt-1 space-y-2">
                 {group.items.map((item) => (
                   <div key={item.id}>{renderItem(item, 0)}</div>
                 ))}

@@ -26,7 +26,7 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <Card
-          className="group relative"
+          className="group relative border border-border/60 bg-card shadow-sm transition-all duration-200 ease-out [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-black/10 dark:[@media(hover:hover)]:hover:shadow-black/40"
           tabIndex={0}
           onClick={(e) => {
             const btn = (e.target as HTMLElement).closest('button')
@@ -68,7 +68,7 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
               </DropdownMenuContent>
             </DropdownMenu>
             <div className="flex items-start gap-4">
-              <div className="h-10 w-10 shrink-0 rounded-xl bg-slate-50 ring-1 ring-border overflow-hidden flex items-center justify-center dark:bg-white/10">
+              <div className="h-10 w-10 shrink-0 rounded-xl bg-muted/40 ring-1 ring-border/40 overflow-hidden flex items-center justify-center">
                 <img
                   className="h-6 w-6 object-contain"
                   src={logo}
@@ -82,8 +82,8 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="min-w-0 truncate text-[13px] font-medium">{site.title}</div>
-                <div className="mt-1 text-xs text-muted-foreground truncate" title={site.desc || ''}>
+                <div className="min-w-0 truncate text-sm font-medium text-foreground">{site.title}</div>
+                <div className="mt-1 text-xs text-muted-foreground line-clamp-2 leading-relaxed" title={site.desc || ''}>
                   {site.desc || ''}
                 </div>
               </div>

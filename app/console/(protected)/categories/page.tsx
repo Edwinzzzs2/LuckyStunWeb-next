@@ -15,6 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { fetchConsoleJson, postJson } from '@/app/console/_lib/http'
 import { useConsoleToast } from '@/app/console/_components/console-toast'
 import { useConsoleShell } from '@/app/console/_components/console-shell'
@@ -89,20 +97,22 @@ export default function ConsoleCategoriesPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<CategoryNode | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)')
+    const onChange = () => setIsMobile(media.matches)
+    onChange()
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
 
   async function load() {
     setLoading(true)
     try {
       const tree = await fetchConsoleJson<CategoryNode[]>('/api/categories')
       setCategories(tree)
-      setExpandedIds((prev) => {
-        if (prev.size > 0) return prev
-        const all = new Set<number>()
-        walkTree(tree, (n) => {
-          if (n.children?.length) all.add(n.id)
-        })
-        return all
-      })
+      // 默认不展开
     } catch (e: any) {
       push({ title: '加载分类失败', detail: e?.message || '请稍后重试', tone: 'danger' })
     } finally {
@@ -119,6 +129,47 @@ export default function ConsoleCategoriesPage() {
   const rows = useMemo(() => flattenVisible(categories, expandedIds), [categories, expandedIds])
 
   const parentOptions = useMemo(() => flattenForParentOptions(categories, editing?.id), [categories, editing?.id])
+
+  const editorBody = (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">分类名称</label>
+        <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="例如：常用推荐" />
+      </div>
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">标识（en_name）</label>
+        <Input value={form.en_name} onChange={(e) => setForm((p) => ({ ...p, en_name: e.target.value }))} placeholder="例如：often" />
+      </div>
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">父级分类</label>
+        <select
+          className="h-10 w-full rounded-md border bg-background px-3 text-sm"
+          value={form.parent_id}
+          onChange={(e) => setForm((p) => ({ ...p, parent_id: e.target.value }))}
+        >
+          <option value="0">（无）根分类</option>
+          {parentOptions.map((opt) => (
+            <option key={opt.id} value={String(opt.id)}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">图标（支持 Emoji 或 iconfont）</label>
+        <Input value={form.icon} onChange={(e) => setForm((p) => ({ ...p, icon: e.target.value }))} placeholder="例如：⭐ 或 icon-changyongfuwu" />
+      </div>
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">排序（数值越小越靠前）</label>
+        <Input
+          value={form.sort_order}
+          onChange={(e) => setForm((p) => ({ ...p, sort_order: e.target.value }))}
+          type="number"
+          inputMode="numeric"
+        />
+      </div>
+    </div>
+  )
 
   function openCreate() {
     setEditing(null)
@@ -187,8 +238,9 @@ export default function ConsoleCategoriesPage() {
 
   return (
     <div className="grid gap-5">
-      <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
-        <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-3">
+      <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:static md:mx-0 md:p-0 md:bg-transparent md:backdrop-blur-none">
+        <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
+          <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-3">
           <Button
             variant="outline"
             size="icon"
@@ -210,6 +262,7 @@ export default function ConsoleCategoriesPage() {
           </Button>
         </div>
       </div>
+    </div>
 
       <CategoriesMobileList
         rows={rows}
@@ -223,11 +276,11 @@ export default function ConsoleCategoriesPage() {
       <Card className="hidden overflow-hidden rounded-none sm:block">
         <Table>
           <TableHeader>
-            <TableRow className="bg-muted/40">
-              <TableHead className="w-[45%] text-xs font-semibold uppercase tracking-wide text-muted-foreground">分类</TableHead>
-              <TableHead className="w-[25%] text-xs font-semibold uppercase tracking-wide text-muted-foreground">标识 / 图标</TableHead>
-              <TableHead className="w-[10%] text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">排序</TableHead>
-              <TableHead className="w-[20%] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">操作</TableHead>
+            <TableRow className="bg-muted/50">
+              <TableHead className="w-[40%] text-left text-xs uppercase tracking-wide text-muted-foreground">分类</TableHead>
+              <TableHead className="w-[20%] text-left text-xs uppercase tracking-wide text-muted-foreground">标识 / 图标</TableHead>
+              <TableHead className="w-[10%] pr-10 text-right text-xs uppercase tracking-wide text-muted-foreground">排序</TableHead>
+              <TableHead className="w-[15%] pl-10 text-left text-xs uppercase tracking-wide text-muted-foreground">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -270,7 +323,7 @@ export default function ConsoleCategoriesPage() {
                         <div className="h-7 w-7" />
                       )}
                       <div className="min-w-0">
-                        <div className="truncate text-sm font-semibold">{node.name}</div>
+                        <div className="truncate text-sm">{node.name}</div>
                         <div className="truncate text-xs text-muted-foreground">{node.parent_id ? '子分类' : '根分类'}</div>
                       </div>
                     </div>
@@ -278,21 +331,19 @@ export default function ConsoleCategoriesPage() {
 
                   <TableCell className="min-w-0">
                     <div className="flex min-w-0 items-center gap-2">
-                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-base">
+                      <span className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-muted text-sm">
                         {iconClass ? <i className={iconClass} aria-hidden="true" /> : rawIcon || '📁'}
                       </span>
-                      <div className="min-w-0">
-                        <div className="truncate text-sm font-medium">{node.en_name || '-'}</div>
-                        <div className="truncate text-xs text-muted-foreground">ID: {node.id}</div>
-                      </div>
+                      <div className="truncate text-sm text-muted-foreground">{node.en_name || '-'}</div>
+                      <div className="shrink-0 text-[10px] text-muted-foreground/50">#{node.id}</div>
                     </div>
                   </TableCell>
 
-                  <TableCell className="text-right">
-                    <span className="rounded-lg bg-muted px-2 py-1 text-xs font-semibold">{String(node.sort_order ?? 0)}</span>
+                  <TableCell className="pr-10 text-right">
+                    <span className="rounded-lg bg-muted px-2 py-1 text-xs">{String(node.sort_order ?? 0)}</span>
                   </TableCell>
 
-                  <TableCell className="text-left">
+                  <TableCell className="pl-10 text-left">
                     <div className="flex items-center justify-start gap-2">
                       <Button variant="outline" size="icon" className="rounded-xl" onClick={() => openEdit(node)} aria-label="编辑" title="编辑">
                         <Pencil className="h-4 w-4" />
@@ -323,65 +374,67 @@ export default function ConsoleCategoriesPage() {
         </Table>
       </Card>
 
-      <Dialog open={editorOpen} onOpenChange={(open) => {
-        if (!open) setEditing(null)
-        setEditorOpen(open)
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editing ? '编辑分类' : '新增分类'}</DialogTitle>
-            <DialogDescription>{editing ? `ID: ${editing.id}` : '创建一个新的分类节点'}</DialogDescription>
-          </DialogHeader>
+      {isMobile ? (
+         <Sheet
+           open={editorOpen}
+           onOpenChange={(open) => {
+             if (!open) setEditing(null)
+             setEditorOpen(open)
+           }}
+         >
+           <SheetContent
+             side="bottom"
+             className="flex h-[92dvh] flex-col p-0 rounded-t-2xl overflow-hidden"
+             onOpenAutoFocus={(e) => e.preventDefault()}
+             onCloseAutoFocus={(e) => e.preventDefault()}
+           >
+             <div className="flex-1 overflow-y-auto p-6">
+               <SheetHeader>
+                 <SheetTitle>{editing ? '编辑分类' : '新增分类'}</SheetTitle>
+                 <SheetDescription>{editing ? `ID: ${editing.id}` : '创建一个新的分类节点'}</SheetDescription>
+               </SheetHeader>
+               <div className="mt-4">{editorBody}</div>
+             </div>
+             <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
+               <Button variant="outline" className="rounded-xl" onClick={() => setEditorOpen(false)}>
+                 取消
+               </Button>
+               <Button className="rounded-xl" onClick={submit} disabled={saving}>
+                 {saving ? '保存中...' : editing ? '保存' : '创建'}
+               </Button>
+             </SheetFooter>
+           </SheetContent>
+         </Sheet>
+       ) : (
+         <Dialog
+           open={editorOpen}
+           onOpenChange={(open) => {
+             if (!open) setEditing(null)
+             setEditorOpen(open)
+           }}
+         >
+           <DialogContent
+            onOpenAutoFocus={(e) => e.preventDefault()}
+            onCloseAutoFocus={(e) => e.preventDefault()}
+          >
+             <DialogHeader>
+               <DialogTitle>{editing ? '编辑分类' : '新增分类'}</DialogTitle>
+               <DialogDescription>{editing ? `ID: ${editing.id}` : '创建一个新的分类节点'}</DialogDescription>
+             </DialogHeader>
 
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">分类名称</label>
-              <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="例如：常用推荐" />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">标识（en_name）</label>
-              <Input value={form.en_name} onChange={(e) => setForm((p) => ({ ...p, en_name: e.target.value }))} placeholder="例如：often" />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">父级分类</label>
-              <select
-                className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-                value={form.parent_id}
-                onChange={(e) => setForm((p) => ({ ...p, parent_id: e.target.value }))}
-              >
-                <option value="0">（无）根分类</option>
-                {parentOptions.map((opt) => (
-                  <option key={opt.id} value={String(opt.id)}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">图标（支持 Emoji 或 iconfont）</label>
-              <Input value={form.icon} onChange={(e) => setForm((p) => ({ ...p, icon: e.target.value }))} placeholder="例如：⭐ 或 icon-changyongfuwu" />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">排序（数值越小越靠前）</label>
-              <Input
-                value={form.sort_order}
-                onChange={(e) => setForm((p) => ({ ...p, sort_order: e.target.value }))}
-                type="number"
-                inputMode="numeric"
-              />
-            </div>
-          </div>
+             {editorBody}
 
-          <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setEditorOpen(false)}>
-              取消
-            </Button>
-            <Button className="rounded-xl" onClick={submit} disabled={saving}>
-              {saving ? '保存中...' : editing ? '保存' : '创建'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+             <DialogFooter>
+               <Button variant="outline" className="rounded-xl" onClick={() => setEditorOpen(false)}>
+                 取消
+               </Button>
+               <Button className="rounded-xl" onClick={submit} disabled={saving}>
+                 {saving ? '保存中...' : editing ? '保存' : '创建'}
+               </Button>
+             </DialogFooter>
+           </DialogContent>
+         </Dialog>
+       )}
 
       <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => {
         if (!open) setDeleteTarget(null)

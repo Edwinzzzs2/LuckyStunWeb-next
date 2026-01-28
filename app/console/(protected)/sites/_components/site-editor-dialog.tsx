@@ -89,13 +89,7 @@ export function SiteEditorDialog({
 
           <div className="grid gap-2">
             <label className="text-sm font-medium">描述</label>
-            <textarea
-              className="w-full rounded-md border bg-background px-3 py-2 text-sm"
-              rows={4}
-              value={form.desc}
-              onChange={(e) => setForm((p) => ({ ...p, desc: e.target.value }))}
-              placeholder="一句话描述"
-            />
+            <Input value={form.desc} onChange={(e) => setForm((p) => ({ ...p, desc: e.target.value }))} placeholder="一句话描述" />
           </div>
         </div>
 
@@ -155,13 +149,20 @@ export function SiteEditorDialog({
   if (isMobile) {
     return (
       <Sheet open={open} onOpenChange={onOpenChange}>
-        <SheetContent side="bottom" className="h-[92dvh] overflow-y-auto rounded-t-2xl">
-          <SheetHeader>
-            <SheetTitle>{editing ? '编辑站点' : '新增站点'}</SheetTitle>
-            <SheetDescription>{editing ? `ID: ${editing.id}` : '创建一个新的站点'}</SheetDescription>
-          </SheetHeader>
-          <div className="mt-4">{body}</div>
-          <SheetFooter className="mt-6 flex flex-row justify-end gap-2">
+        <SheetContent
+          side="bottom"
+          className="flex h-[92dvh] flex-col p-0 rounded-t-2xl overflow-hidden"
+          onOpenAutoFocus={(e) => e.preventDefault()}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
+          <div className="flex-1 overflow-y-auto p-6">
+            <SheetHeader>
+              <SheetTitle>{editing ? '编辑站点' : '新增站点'}</SheetTitle>
+              <SheetDescription>{editing ? `ID: ${editing.id}` : '创建一个新的站点'}</SheetDescription>
+            </SheetHeader>
+            <div className="mt-4">{body}</div>
+          </div>
+          <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
             <Button variant="outline" className="rounded-xl" size="sm" onClick={() => onOpenChange(false)}>
               取消
             </Button>
@@ -176,7 +177,11 @@ export function SiteEditorDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent
+        className="max-w-3xl"
+        onOpenAutoFocus={(e) => e.preventDefault()}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
         <DialogHeader>
           <DialogTitle>{editing ? '编辑站点' : '新增站点'}</DialogTitle>
           <DialogDescription>{editing ? `ID: ${editing.id}` : '创建一个新的站点'}</DialogDescription>

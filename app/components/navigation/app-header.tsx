@@ -51,11 +51,11 @@ export function AppHeader({
             {sidebarCollapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
           <div className="hidden lg:flex items-center gap-2">
-            <div className="font-semibold">导航</div>
+            <div className="font-semibold text-sm md:text-base whitespace-nowrap">LuckyStunWeb导航</div>
           </div>
         </div>
 
-        <div className="flex-1 min-w-0 hidden md:flex items-center justify-center">
+        <div className="flex-1 min-w-0 flex items-center justify-center">
           <div className="w-full max-w-[560px] relative">
             <div className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground">
               <i className="iconfont icon-biaoqian text-[16px] leading-none" aria-hidden="true" />
@@ -64,7 +64,7 @@ export function AppHeader({
               ref={searchInputRef}
               id="searchInput"
               type="text"
-              placeholder="搜索导航..."
+              placeholder="请输入关键字"
               className={cn('pl-9', search ? 'pr-16' : 'pr-10')}
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}

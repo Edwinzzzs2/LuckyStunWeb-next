@@ -39,7 +39,9 @@ export default function ConsoleSitesPage() {
     logo: 56,
     info: 320,
     links: 420,
-    actions: 190,
+    updatePort: 80,
+    visibility: 80,
+    actions: 140,
   }))
 
   const [editorOpen, setEditorOpen] = useState(false)
@@ -81,7 +83,9 @@ export default function ConsoleSitesPage() {
         logo: Number(parsed.logo) || 56,
         info: Number(parsed.info) || 320,
         links: Number(parsed.links) || 420,
-        actions: Number(parsed.actions) || 190,
+        updatePort: Number(parsed.updatePort) || 80,
+        visibility: Number(parsed.visibility) || 80,
+        actions: Number(parsed.actions) || 140,
       }
       return next
     } catch {
@@ -113,7 +117,9 @@ export default function ConsoleSitesPage() {
         logo: 56,
         info: 220,
         links: 260,
-        actions: 150,
+        updatePort: 60,
+        visibility: 60,
+        actions: 120,
       }
       const next = Math.max(min[key], Math.round(startWidth + delta))
       setTableColWidth((prev) => ({ ...prev, [key]: next }))
@@ -355,8 +361,9 @@ export default function ConsoleSitesPage() {
 
   return (
     <div className="grid gap-5">
-      <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
-        <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-3">
+      <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:static md:mx-0 md:p-0 md:bg-transparent md:backdrop-blur-none">
+        <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
+          <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-3">
           <Button
             variant="outline"
             size="icon"
@@ -400,6 +407,7 @@ export default function ConsoleSitesPage() {
           </Button>
         </div>
       </div>
+    </div>
 
       <div className="flex flex-nowrap gap-2 sm:flex-row sm:items-center">
         <div className="relative min-w-0 flex-1 sm:w-80 sm:flex-none">
@@ -457,7 +465,6 @@ export default function ConsoleSitesPage() {
         loading={loading}
         isRowBusy={isRowBusy}
         onToggleVisible={(site, checked) => updateSite(site, { is_visible: checked })}
-        onToggleUpdatePort={(site, checked) => updateSite(site, { update_port_enabled: checked })}
         onEdit={openEdit}
         onDelete={setDeleteTarget}
       />

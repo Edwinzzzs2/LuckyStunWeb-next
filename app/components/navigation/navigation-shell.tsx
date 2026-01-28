@@ -11,12 +11,12 @@ type NavigationShellProps = {
 
 export function NavigationShell({ sidebar, header, children, sidebarCollapsed }: NavigationShellProps) {
   return (
-    <div className="h-screen overflow-hidden">
-      <div className="h-full mx-auto w-full max-w-[1680px]">
-        <div className="flex h-full px-2 2xl:px-8">
-          {sidebarCollapsed ? null : sidebar}
-          <div className={cn('flex-1 min-w-0 flex flex-col h-full', sidebarCollapsed ? 'w-full' : '')}>
-            {header}
+    <div className="fixed inset-0 w-full overflow-hidden bg-background">
+      <div className="flex h-full w-full">
+        {sidebarCollapsed ? null : sidebar}
+        <div className={cn('flex min-w-0 flex-1 flex-col h-full', sidebarCollapsed ? 'w-full' : '')}>
+          {header}
+          <div className="min-h-0 flex-1 overflow-hidden">
             {children}
           </div>
         </div>

@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
   if (!user) return NextResponse.json({ message: '需要登录' }, { status: 401 })
   if (!user.isAdmin) return NextResponse.json({ message: '需要管理员权限' }, { status: 403 })
   const results = await query(
-    'SELECT id, category_id, url, backup_url, internal_url, logo, title, "desc", sort_order, is_visible, created_at, update_port_enabled FROM sites'
+    'SELECT id, category_id, url, backup_url, internal_url, logo, title, "desc", sort_order, is_visible, created_at, update_port_enabled FROM sites ORDER BY sort_order ASC, id ASC'
   )
   return NextResponse.json(results)
 }

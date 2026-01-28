@@ -27,7 +27,7 @@ export type SiteFormState = {
   update_port_enabled: boolean
 }
 
-export type TableColKey = 'select' | 'logo' | 'info' | 'links' | 'actions'
+export type TableColKey = 'select' | 'logo' | 'info' | 'links' | 'updatePort' | 'visibility' | 'actions'
 
 export function toForm(site?: SiteRow, defaultCategoryId?: number): SiteFormState {
   return {

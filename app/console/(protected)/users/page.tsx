@@ -16,6 +16,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import { fetchConsoleJson, postJson } from '@/app/console/_lib/http'
 import { useConsoleAuth } from '@/app/console/_components/console-auth'
 import { useConsoleToast } from '@/app/console/_components/console-toast'
@@ -62,6 +70,15 @@ export default function ConsoleUsersPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 767px)')
+    const onChange = () => setIsMobile(media.matches)
+    onChange()
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
 
   async function load() {
     setLoading(true)
@@ -84,6 +101,37 @@ export default function ConsoleUsersPage() {
 
   const meId = user?.id
   const visibleUsers = useMemo(() => users.slice().sort((a, b) => a.id - b.id), [users])
+
+  const createUserBody = (
+    <div className="grid gap-4">
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">用户名</label>
+        <Input value={createUsername} onChange={(e) => setCreateUsername(e.target.value)} placeholder="例如：test" />
+      </div>
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">密码</label>
+        <Input value={createPassword} onChange={(e) => setCreatePassword(e.target.value)} type="password" placeholder="至少 6 位" />
+      </div>
+      <div className="flex items-center justify-between rounded-xl border px-4 py-3">
+        <div>
+          <div className="text-sm font-medium">管理员</div>
+          <div className="text-xs text-muted-foreground">可访问用户管理等敏感操作</div>
+        </div>
+        <Switch checked={createIsAdmin} onCheckedChange={setCreateIsAdmin} />
+      </div>
+    </div>
+  )
+
+  const resetPasswordBody = (
+    <div className="grid gap-2">
+      <label className="text-sm font-medium">新密码</label>
+      <Input value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} type="password" placeholder="至少 6 位" />
+    </div>
+  )
+
+  const deleteUserBody = (
+    <div className="text-sm">确认删除用户「{deleteTarget?.username}」？此操作不可撤销。</div>
+  )
 
   async function createUser() {
     const username = createUsername.trim()
@@ -152,8 +200,9 @@ export default function ConsoleUsersPage() {
 
   return (
     <div className="grid gap-5">
-      <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
-        <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-3">
+      <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:static md:mx-0 md:p-0 md:bg-transparent md:backdrop-blur-none">
+        <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
+          <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-3">
           <Button
             variant="outline"
             size="icon"
@@ -175,28 +224,31 @@ export default function ConsoleUsersPage() {
           </Button>
         </div>
       </div>
+    </div>
 
       <Card className="overflow-hidden rounded-none">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40">
-              <TableHead className="w-[15%] text-xs font-semibold uppercase tracking-wide text-muted-foreground">ID</TableHead>
-              <TableHead className="w-[35%] text-xs font-semibold uppercase tracking-wide text-muted-foreground">用户名</TableHead>
-              <TableHead className="w-[20%] text-xs font-semibold uppercase tracking-wide text-muted-foreground">角色</TableHead>
-              <TableHead className="w-[30%] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">操作</TableHead>
+              <TableHead className="w-[15%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">ID</TableHead>
+              <TableHead className="w-[35%] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">用户名</TableHead>
+              <TableHead className="w-[20%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">角色</TableHead>
+              <TableHead className="w-[30%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">操作</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {visibleUsers.map((u) => (
               <TableRow key={u.id}>
-                <TableCell className="text-sm font-semibold">{u.id}</TableCell>
-                <TableCell className="min-w-0">
-                  <div className="truncate text-sm font-semibold">{u.username}</div>
-                  <div className="truncate text-xs text-muted-foreground">{formatDate(u.createdAt)}</div>
+                <TableCell className="text-center text-sm font-semibold">{u.id}</TableCell>
+                <TableCell className="min-w-0 text-left">
+                  <div className="flex min-w-0 flex-col items-start">
+                    <div className="truncate text-sm font-semibold">{u.username}</div>
+                    <div className="truncate text-xs text-muted-foreground">{formatDate(u.createdAt)}</div>
+                  </div>
                 </TableCell>
-                <TableCell className="text-sm text-muted-foreground">{u.isAdmin ? '管理员' : '用户'}</TableCell>
-                <TableCell className="text-left">
-                  <div className="flex items-center justify-start gap-2">
+                <TableCell className="text-center text-sm text-muted-foreground">{u.isAdmin ? '管理员' : '用户'}</TableCell>
+                <TableCell className="text-center">
+                  <div className="flex items-center justify-center gap-2">
                     <Button variant="outline" size="icon" className="rounded-xl" onClick={() => setResetTarget(u)} aria-label="重置密码" title="重置密码">
                       <KeyRound className="h-4 w-4" />
                     </Button>
@@ -226,92 +278,168 @@ export default function ConsoleUsersPage() {
         </Table>
       </Card>
 
-      <Dialog open={createOpen} onOpenChange={(open) => {
-        if (!open) {
-          setCreateUsername('')
-          setCreatePassword('')
-          setCreateIsAdmin(false)
-        }
-        setCreateOpen(open)
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>创建用户</DialogTitle>
-            <DialogDescription>为管理后台新增登录账号</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4">
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">用户名</label>
-              <Input value={createUsername} onChange={(e) => setCreateUsername(e.target.value)} placeholder="例如：test" />
-            </div>
-            <div className="grid gap-2">
-              <label className="text-sm font-medium">密码</label>
-              <Input value={createPassword} onChange={(e) => setCreatePassword(e.target.value)} type="password" placeholder="至少 6 位" />
-            </div>
-            <div className="flex items-center justify-between rounded-xl border px-4 py-3">
-              <div>
-                <div className="text-sm font-medium">管理员</div>
-                <div className="text-xs text-muted-foreground">可访问用户管理等敏感操作</div>
-              </div>
-              <Switch checked={createIsAdmin} onCheckedChange={setCreateIsAdmin} />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setCreateOpen(false)}>
-              取消
-            </Button>
-            <Button className="rounded-xl" onClick={createUser} disabled={creating}>
-              {creating ? '创建中...' : '创建'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {isMobile ? (
+        <Sheet open={createOpen} onOpenChange={(open) => {
+          if (!open) {
+            setCreateUsername('')
+            setCreatePassword('')
+            setCreateIsAdmin(false)
+          }
+          setCreateOpen(open)
+        }}>
+          <SheetContent
+             side="bottom"
+             className="flex h-[auto] max-h-[92dvh] flex-col p-0 rounded-t-2xl overflow-hidden"
+             onOpenAutoFocus={(e) => e.preventDefault()}
+             onCloseAutoFocus={(e) => e.preventDefault()}
+           >
+             <div className="flex-1 overflow-y-auto p-6">
+               <SheetHeader>
+                 <SheetTitle>创建用户</SheetTitle>
+                 <SheetDescription>为管理后台新增登录账号</SheetDescription>
+               </SheetHeader>
+               <div className="mt-4">{createUserBody}</div>
+             </div>
+             <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
+               <Button variant="outline" className="rounded-xl" onClick={() => setCreateOpen(false)}>
+                 取消
+               </Button>
+               <Button className="rounded-xl" onClick={createUser} disabled={creating}>
+                 {creating ? '创建中...' : '创建'}
+               </Button>
+             </SheetFooter>
+           </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={createOpen} onOpenChange={(open) => {
+          if (!open) {
+            setCreateUsername('')
+            setCreatePassword('')
+            setCreateIsAdmin(false)
+          }
+          setCreateOpen(open)
+        }}>
+          <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DialogHeader>
+              <DialogTitle>创建用户</DialogTitle>
+              <DialogDescription>为管理后台新增登录账号</DialogDescription>
+            </DialogHeader>
+            {createUserBody}
+            <DialogFooter>
+              <Button variant="outline" className="rounded-xl" onClick={() => setCreateOpen(false)}>
+                取消
+              </Button>
+              <Button className="rounded-xl" onClick={createUser} disabled={creating}>
+                {creating ? '创建中...' : '创建'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
-      <Dialog open={Boolean(resetTarget)} onOpenChange={(open) => {
-        if (!open) {
-          setResetTarget(null)
-          setResetPassword('')
-        }
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>重置密码</DialogTitle>
-            <DialogDescription>用户：{resetTarget?.username}</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-2">
-            <label className="text-sm font-medium">新密码</label>
-            <Input value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} type="password" placeholder="至少 6 位" />
-          </div>
-          <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setResetTarget(null)}>
-              取消
-            </Button>
-            <Button className="rounded-xl" onClick={resetUserPassword} disabled={resetting}>
-              {resetting ? '提交中...' : '确认重置'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {isMobile ? (
+        <Sheet open={Boolean(resetTarget)} onOpenChange={(open) => {
+          if (!open) {
+            setResetTarget(null)
+            setResetPassword('')
+          }
+        }}>
+          <SheetContent
+             side="bottom"
+             className="flex h-[auto] max-h-[92dvh] flex-col p-0 rounded-t-2xl overflow-hidden"
+             onOpenAutoFocus={(e) => e.preventDefault()}
+             onCloseAutoFocus={(e) => e.preventDefault()}
+           >
+             <div className="flex-1 overflow-y-auto p-6">
+               <SheetHeader>
+                 <SheetTitle>重置密码</SheetTitle>
+                 <SheetDescription>用户：{resetTarget?.username}</SheetDescription>
+               </SheetHeader>
+               <div className="mt-4">{resetPasswordBody}</div>
+             </div>
+             <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
+               <Button variant="outline" className="rounded-xl" onClick={() => setResetTarget(null)}>
+                 取消
+               </Button>
+               <Button className="rounded-xl" onClick={resetUserPassword} disabled={resetting}>
+                 {resetting ? '提交中...' : '确认重置'}
+               </Button>
+             </SheetFooter>
+           </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={Boolean(resetTarget)} onOpenChange={(open) => {
+          if (!open) {
+            setResetTarget(null)
+            setResetPassword('')
+          }
+        }}>
+          <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DialogHeader>
+              <DialogTitle>重置密码</DialogTitle>
+              <DialogDescription>用户：{resetTarget?.username}</DialogDescription>
+            </DialogHeader>
+            {resetPasswordBody}
+            <DialogFooter>
+              <Button variant="outline" className="rounded-xl" onClick={() => setResetTarget(null)}>
+                取消
+              </Button>
+              <Button className="rounded-xl" onClick={resetUserPassword} disabled={resetting}>
+                {resetting ? '提交中...' : '确认重置'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
 
-      <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => {
-        if (!open) setDeleteTarget(null)
-      }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>删除用户</DialogTitle>
-            <DialogDescription>将从系统中移除该用户</DialogDescription>
-          </DialogHeader>
-          <div className="text-sm">确认删除用户「{deleteTarget?.username}」？此操作不可撤销。</div>
-          <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setDeleteTarget(null)}>
-              取消
-            </Button>
-            <Button variant="destructive" className="rounded-xl" onClick={deleteUser} disabled={deleting}>
-              {deleting ? '删除中...' : '确认删除'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {isMobile ? (
+        <Sheet open={Boolean(deleteTarget)} onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}>
+          <SheetContent
+             side="bottom"
+             className="flex h-[auto] max-h-[92dvh] flex-col p-0 rounded-t-2xl overflow-hidden"
+             onOpenAutoFocus={(e) => e.preventDefault()}
+             onCloseAutoFocus={(e) => e.preventDefault()}
+           >
+             <div className="flex-1 overflow-y-auto p-6">
+               <SheetHeader>
+                 <SheetTitle>删除用户</SheetTitle>
+                 <SheetDescription>将从系统中移除该用户</SheetDescription>
+               </SheetHeader>
+               <div className="mt-4">{deleteUserBody}</div>
+             </div>
+             <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
+               <Button variant="outline" className="rounded-xl" onClick={() => setDeleteTarget(null)}>
+                 取消
+               </Button>
+               <Button variant="destructive" className="rounded-xl" onClick={deleteUser} disabled={deleting}>
+                 {deleting ? '删除中...' : '确认删除'}
+               </Button>
+             </SheetFooter>
+           </SheetContent>
+        </Sheet>
+      ) : (
+        <Dialog open={Boolean(deleteTarget)} onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null)
+        }}>
+          <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()}>
+            <DialogHeader>
+              <DialogTitle>删除用户</DialogTitle>
+              <DialogDescription>将从系统中移除该用户</DialogDescription>
+            </DialogHeader>
+            {deleteUserBody}
+            <DialogFooter>
+              <Button variant="outline" className="rounded-xl" onClick={() => setDeleteTarget(null)}>
+                取消
+              </Button>
+              <Button variant="destructive" className="rounded-xl" onClick={deleteUser} disabled={deleting}>
+                {deleting ? '删除中...' : '确认删除'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   )
 }

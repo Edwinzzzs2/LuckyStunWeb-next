@@ -196,14 +196,14 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ConsoleShellContext.Provider value={{ openSidebar }}>
-      <div className="flex h-[100dvh] w-full overflow-hidden">
+      <div className="fixed inset-0 flex overflow-hidden bg-background">
         <Sidebar variant="desktop" />
 
-      <div className="min-w-0 flex-1">
-        <main className="h-[100dvh] overflow-y-auto overflow-x-hidden px-4 py-6 pb-24 md:px-6 md:pb-6">
-          <div className="mx-auto w-full max-w-[1400px] min-w-0 2xl:max-w-[1600px]">{children}</div>
-        </main>
-      </div>
+        <div className="flex min-w-0 flex-1 flex-col">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6">
+            <div className="mx-auto w-full max-w-[1400px] min-w-0 py-6 pb-24 md:pb-6 2xl:max-w-[1600px]">{children}</div>
+          </main>
+        </div>
 
       <Button
         variant="outline"

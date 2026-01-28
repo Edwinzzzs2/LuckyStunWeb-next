@@ -1,7 +1,7 @@
 "use client"
 
 import type { MouseEvent as ReactMouseEvent } from 'react'
-import { ExternalLink, EyeOff, Loader2, Pencil, Trash2 } from 'lucide-react'
+import { ExternalLink, Loader2, Pencil, RefreshCcw, Trash2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -45,8 +45,9 @@ export function SitesTable({
 }) {
   return (
     <div className="hidden sm:block">
-      <Table className="table-fixed" style={{ width: tableTotalWidth }}>
-        <TableHeader>
+      <div className="overflow-x-auto">
+        <Table className="table-fixed" style={{ width: tableTotalWidth }}>
+          <TableHeader>
           <TableRow>
             <TableHead className="text-center" style={{ width: tableColWidth.select }}>
               <input
@@ -92,6 +93,26 @@ export function SitesTable({
               />
             </TableHead>
 
+            <TableHead className="group relative text-center" style={{ width: tableColWidth.updatePort }}>
+              端口更新
+              <div className="pointer-events-none absolute right-0 top-0 h-12 w-px bg-border/70 group-hover:bg-primary/60" />
+              <div
+                className="absolute -right-2 top-0 h-12 w-4 cursor-col-resize"
+                onMouseDown={(e) => resizeStart('updatePort', e)}
+                aria-label="调整端口更新列宽"
+              />
+            </TableHead>
+
+            <TableHead className="group relative text-center" style={{ width: tableColWidth.visibility }}>
+              导航显隐
+              <div className="pointer-events-none absolute right-0 top-0 h-12 w-px bg-border/70 group-hover:bg-primary/60" />
+              <div
+                className="absolute -right-2 top-0 h-12 w-4 cursor-col-resize"
+                onMouseDown={(e) => resizeStart('visibility', e)}
+                aria-label="调整导航显隐列宽"
+              />
+            </TableHead>
+
             <TableHead className="text-left" style={{ width: tableColWidth.actions }}>
               操作
             </TableHead>
@@ -118,7 +139,7 @@ export function SitesTable({
               <TableCell className="min-w-0" style={{ width: tableColWidth.info }}>
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-2">
-                    <div className="truncate text-sm font-semibold">{s.title}</div>
+                    <div className="truncate text-sm font-medium">{s.title}</div>
                     <div className="shrink-0 text-xs text-muted-foreground">#{s.id}</div>
                   </div>
                   <div className="mt-0.5 flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
@@ -163,18 +184,26 @@ export function SitesTable({
                   ) : null}
                 </div>
               </TableCell>
+              <TableCell className="text-center" style={{ width: tableColWidth.updatePort }}>
+                {s.update_port_enabled ? (
+                  <span className="text-xs text-muted-foreground">同步</span>
+                ) : (
+                  <span className="text-xs text-muted-foreground/30">-</span>
+                )}
+              </TableCell>
+              <TableCell className="text-center" style={{ width: tableColWidth.visibility }}>
+                <div className="flex items-center justify-center gap-2">
+                  <Switch
+                    checked={s.is_visible}
+                    onCheckedChange={(checked) => onToggleVisible(s, checked)}
+                    disabled={isRowBusy(s.id) || loading}
+                    aria-label="导航显隐"
+                  />
+                  {isRowBusy(s.id) ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
+                </div>
+              </TableCell>
               <TableCell className="text-left" style={{ width: tableColWidth.actions }}>
                 <div className="flex items-center justify-start gap-2">
-                  <div className="flex items-center gap-2">
-                    {!s.is_visible ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : null}
-                    <Switch
-                      checked={s.is_visible}
-                      onCheckedChange={(checked) => onToggleVisible(s, checked)}
-                      disabled={isRowBusy(s.id) || loading}
-                      aria-label="导航显隐"
-                    />
-                    {isRowBusy(s.id) ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
-                  </div>
                   <Button
                     variant="outline"
                     size="icon"
@@ -212,5 +241,6 @@ export function SitesTable({
         </TableBody>
       </Table>
     </div>
-  )
+  </div>
+)
 }
