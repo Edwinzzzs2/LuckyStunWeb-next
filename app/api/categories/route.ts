@@ -41,7 +41,16 @@ export async function POST(req: NextRequest) {
   if (!name) return NextResponse.json({ message: '分类名称不能为空' }, { status: 400 })
   const parentValue = data?.parent_id
   const parentId = parentValue && parentValue !== '0' ? Number(parentValue) : null
-  const sortOrder = Number.isFinite(data?.sort_order) ? Number(data?.sort_order) : 0
+  let sortOrder = data?.sort_order
+  if (sortOrder === undefined || sortOrder === null || !Number.isFinite(Number(sortOrder))) {
+    const maxResult = await query(
+      'SELECT MAX(sort_order) as max_sort FROM categories WHERE parent_id IS NOT DISTINCT FROM $1',
+      [parentId]
+    )
+    sortOrder = (maxResult[0]?.max_sort ?? -1) + 1
+  } else {
+    sortOrder = Number(sortOrder)
+  }
   const result = await execute(
     'INSERT INTO categories (name, en_name, icon, parent_id, sort_order) VALUES ($1, $2, $3, $4, $5) RETURNING id'
     ,

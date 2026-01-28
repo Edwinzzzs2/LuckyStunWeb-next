@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import type { MenuGroup, MenuItem } from '@/data/navigation/types'
+import { ChevronDown } from 'lucide-react'
 
 type SidebarVariant = 'desktop' | 'mobile'
 
@@ -71,7 +72,9 @@ export function AppSidebar({
         >
           <i className={cn('iconfont', item.icon || 'icon-daohang2', 'text-[18px] leading-none')} aria-hidden="true" />
           <span className="text-sm font-medium truncate">{item.label}</span>
-          {children ? <span className={cn('ml-auto transition opacity-70', expanded ? 'rotate-180' : '')}>▾</span> : null}
+          {children ? (
+            <ChevronDown className={cn('ml-auto h-4 w-4 transition opacity-70', expanded ? 'rotate-180' : '')} />
+          ) : null}
         </Button>
         {children ? (
           <div className={cn('ml-4 pl-2 border-l border-border space-y-1', expanded ? 'mt-0.5' : 'hidden')}>

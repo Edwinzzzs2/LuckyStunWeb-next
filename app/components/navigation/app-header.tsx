@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { NetworkType } from '@/hooks/use-navigation-preferences'
+import { Check, ChevronDown, Github, Moon, PanelLeftClose, PanelLeftOpen, Sun, Wifi, X } from 'lucide-react'
 
 const networkName: Record<NetworkType, string> = { main: '外网', backup: '备用', internal: '内网' }
 
@@ -18,6 +19,7 @@ type AppHeaderProps = {
   onToggleTheme: () => void
   onToggleSidebar: () => void
   onOpenMobileSidebar: () => void
+  sidebarCollapsed: boolean
 }
 
 export function AppHeader({
@@ -30,6 +32,7 @@ export function AppHeader({
   onToggleTheme,
   onToggleSidebar,
   onOpenMobileSidebar,
+  sidebarCollapsed,
 }: AppHeaderProps) {
   return (
     <header className="sticky top-0 z-30 bg-background/85 backdrop-blur border-b border-border">
@@ -39,12 +42,13 @@ export function AppHeader({
             variant="ghost"
             size="icon"
             aria-label="切换侧边栏"
+            title="切换侧边栏"
             onClick={() => {
               if (window.innerWidth >= 1024) onToggleSidebar()
               else onOpenMobileSidebar()
             }}
           >
-            <i className="iconfont icon-daohang2 text-[18px] leading-none" aria-hidden="true" />
+            {sidebarCollapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
           </Button>
           <div className="hidden lg:flex items-center gap-2">
             <div className="font-semibold">导航</div>
@@ -61,11 +65,34 @@ export function AppHeader({
               id="searchInput"
               type="text"
               placeholder="搜索导航..."
-              className="pl-9 pr-10"
+              className={cn('pl-9', search ? 'pr-16' : 'pr-10')}
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
             />
-            <div className="pointer-events-none absolute inset-y-0 right-3 hidden lg:flex items-center text-muted-foreground">
+            {search ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="absolute inset-y-0 right-2 my-auto h-7 w-7"
+                aria-label="清空搜索"
+                title="清空搜索"
+                onClick={() => {
+                  onSearchChange('')
+                  requestAnimationFrame(() => {
+                    searchInputRef.current?.focus()
+                  })
+                }}
+              >
+                <X className="h-4 w-4 opacity-70" />
+              </Button>
+            ) : null}
+            <div
+              className={cn(
+                'pointer-events-none absolute inset-y-0 hidden lg:flex items-center text-muted-foreground',
+                search ? 'right-10' : 'right-3'
+              )}
+            >
               <span className="text-[11px] px-1.5 py-0.5 rounded-md border border-border bg-background">⌘ K</span>
             </div>
           </div>
@@ -74,21 +101,26 @@ export function AppHeader({
         <div className="flex items-center gap-2 ml-auto">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline">
-                <i className="iconfont icon-fuwuzhuangtaijiankong text-[18px] leading-none" aria-hidden="true" />
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label={`网络：${networkName[network]}`}
+                title={`网络：${networkName[network]}`}
+                className="relative"
+              >
+                <Wifi />
                 <span
                   className={cn(
-                    'h-2.5 w-2.5 rounded-full',
+                    'absolute top-2 right-2 h-2 w-2 rounded-full ring-2 ring-background',
                     network === 'backup' ? 'bg-amber-500' : network === 'internal' ? 'bg-sky-500' : 'bg-emerald-500'
                   )}
                 />
-                <span className="text-sm font-medium">{networkName[network]}</span>
-                <span className="opacity-70">▾</span>
+                <ChevronDown className="absolute bottom-1 right-1 h-3 w-3 opacity-60" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="min-w-[180px]">
               {(['main', 'backup', 'internal'] as const).map((k) => (
-                <DropdownMenuItem key={k} onSelect={() => onNetworkChange(k)}>
+                <DropdownMenuItem key={k} onSelect={() => onNetworkChange(k)} className="gap-2">
                   <span
                     className={cn(
                       'h-2.5 w-2.5 rounded-full',
@@ -96,21 +128,22 @@ export function AppHeader({
                     )}
                   />
                   <span className="text-sm">{networkName[k]}</span>
-                  <span className="ml-auto text-xs text-muted-foreground">{k === 'main' ? 'Main' : k === 'backup' ? 'Backup' : 'LAN'}</span>
+                  <span className="ml-auto flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">{k === 'main' ? 'Main' : k === 'backup' ? 'Backup' : 'LAN'}</span>
+                    {network === k ? <Check className="h-4 w-4" /> : <span className="h-4 w-4" />}
+                  </span>
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <Button variant="outline" onClick={onToggleTheme}>
-            <i className={cn('iconfont', resolvedTheme === 'dark' ? 'icon-huoshanyun' : 'icon-tengxunyun', 'text-[18px] leading-none')} aria-hidden="true" />
-            <span className="text-sm font-medium">主题</span>
+          <Button variant="outline" size="icon" onClick={onToggleTheme} aria-label="切换主题" title="切换主题">
+            {resolvedTheme === 'dark' ? <Moon /> : <Sun />}
           </Button>
 
-          <Button asChild variant="ghost" className="h-10 px-3 rounded-lg">
+          <Button asChild variant="ghost" size="icon" aria-label="打开 GitHub" title="打开 GitHub">
             <a href="https://github.com/" target="_blank" rel="noreferrer">
-              <i className="iconfont icon-zhubao-youlian text-[18px] leading-none" aria-hidden="true" />
-              <span className="hidden sm:inline text-sm font-medium">GitHub</span>
+              <Github />
             </a>
           </Button>
         </div>
@@ -118,4 +151,3 @@ export function AppHeader({
     </header>
   )
 }
-

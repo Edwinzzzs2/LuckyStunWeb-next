@@ -25,33 +25,43 @@ export default function Page() {
   const searchInputRef = useRef<HTMLInputElement | null>(null)
   const { setTheme, resolvedTheme } = useTheme()
 
-  useEffect(() => {
-    if (sections.length === 0) return
-    setActiveSectionId((prev) => {
-      if (prev && sections.some((s) => s.id === prev)) return prev
-      return sections[0]!.id
-    })
-  }, [sections])
-
-  const filteredSections = useMemo(() => {
-    const q = search.trim().toLowerCase()
-    if (!q) return sections
-    return sections
-      .map((sec) => ({ ...sec, sites: sec.sites.filter((s) => `${s.title || ''} ${s.desc || ''}`.toLowerCase().includes(q)) }))
-      .filter((sec) => sec.sites.length > 0)
-  }, [search, sections])
-
-  const sectionDepths = useMemo(() => {
-    const map: Record<string, number> = {}
-    function walk(items: MenuGroup['items'], depth: number) {
+  const sectionHasChildren = useMemo(() => {
+    const map: Record<string, boolean> = {}
+    function walk(items: MenuGroup['items']) {
       for (const it of items) {
-        if (it.sectionId) map[it.sectionId] = Math.max(depth, map[it.sectionId] ?? 0)
-        if (Array.isArray(it.children) && it.children.length) walk(it.children, depth + 1)
+        if (it.sectionId && Array.isArray(it.children) && it.children.length > 0) {
+          map[it.sectionId] = true
+        }
+        if (Array.isArray(it.children) && it.children.length > 0) walk(it.children)
       }
     }
-    for (const g of menuGroups) walk(g.items, 0)
+    for (const g of menuGroups) walk(g.items)
     return map
   }, [menuGroups])
+
+  const visibleSections = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    const base = !q
+      ? sections
+      : sections
+          .map((sec) => ({
+            ...sec,
+            sites: sec.sites.filter((s) => `${s.title || ''} ${s.desc || ''}`.toLowerCase().includes(q)),
+          }))
+          .filter((sec) => sec.sites.length > 0)
+
+    return base
+      .filter((sec) => sec.sites.length > 0)
+      .filter((sec) => !sectionHasChildren[sec.id])
+  }, [search, sections, sectionHasChildren])
+
+  useEffect(() => {
+    if (visibleSections.length === 0) return
+    setActiveSectionId((prev) => {
+      if (prev && visibleSections.some((s) => s.id === prev)) return prev
+      return visibleSections[0]!.id
+    })
+  }, [visibleSections])
 
   function resolveTargetUrl(site: Site, n: NetworkType) {
     const main = normalizeUrl(site.url)
@@ -137,16 +147,16 @@ export default function Page() {
             onToggleTheme={toggleTheme}
             onToggleSidebar={toggleSidebarCollapsed}
             onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
+            sidebarCollapsed={sidebarCollapsed}
           />
         }
       >
         <NavigationContent
-          sections={filteredSections}
+          sections={visibleSections}
           network={network}
           contentScrollRef={contentScrollRef}
           resolveTargetUrl={resolveTargetUrl}
           placeholderLogoUrl={SITE_ICON_PLACEHOLDER}
-          sectionDepths={sectionDepths}
         />
       </NavigationShell>
 

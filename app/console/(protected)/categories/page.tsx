@@ -67,7 +67,7 @@ function flattenVisible(nodes: CategoryNode[], expanded: Set<number>) {
 }
 
 function defaultFormState(): CategoryFormState {
-  return { name: '', en_name: '', parent_id: '0', icon: '', sort_order: '0' }
+  return { name: '', en_name: '', parent_id: '0', icon: '', sort_order: '' }
 }
 
 export default function ConsoleCategoriesPage() {
@@ -126,7 +126,7 @@ export default function ConsoleCategoriesPage() {
       en_name: node.en_name || '',
       parent_id: node.parent_id ? String(node.parent_id) : '0',
       icon: node.icon || '',
-      sort_order: String(node.sort_order ?? 0),
+      sort_order: node.sort_order === null ? '' : String(node.sort_order),
     })
     setEditorOpen(true)
   }
@@ -144,7 +144,7 @@ export default function ConsoleCategoriesPage() {
         en_name: form.en_name.trim() || null,
         icon: form.icon.trim() || null,
         parent_id: form.parent_id && form.parent_id !== '0' ? Number(form.parent_id) : null,
-        sort_order: Number(form.sort_order || 0),
+        sort_order: form.sort_order === '' ? null : Number(form.sort_order),
       }
       if (editing) {
         await postJson(`/api/categories/update/${editing.id}`, payload)
@@ -180,11 +180,7 @@ export default function ConsoleCategoriesPage() {
 
   return (
     <div className="grid gap-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <div className="truncate text-2xl font-semibold">分类管理</div>
-          <div className="truncate text-sm text-muted-foreground">树形展示，支持新增 / 编辑 / 删除（受父子级与站点引用约束）</div>
-        </div>
+      <div className="flex items-center justify-end">
         <Button onClick={openCreate} disabled={loading} className="rounded-xl">
           <Plus className="h-4 w-4" />
           新增分类

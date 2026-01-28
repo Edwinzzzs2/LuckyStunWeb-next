@@ -4,6 +4,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { normalizeUrl } from '@/lib/utils'
 import type { Site } from '@/data/navigation/types'
+import { Ellipsis } from 'lucide-react'
 
 type SiteCardProps = {
   site: Site
@@ -40,17 +41,18 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
             }
           }}
         >
-          <CardContent className="p-3.5">
+          <CardContent className="p-3.5 pr-12">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="absolute top-2.5 right-2.5 h-8 w-8 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+                  className="absolute top-2.5 right-2.5 h-7 w-7 rounded-md bg-background/80 backdrop-blur shadow-sm opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
                   aria-label="更多操作"
+                  title="更多操作"
                 >
-                  <i className="iconfont icon-gengduo text-[18px] leading-none opacity-80" aria-hidden="true" />
+                  <Ellipsis className="opacity-80" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

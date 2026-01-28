@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useMemo, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
@@ -27,6 +27,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const { resolvedTheme, setTheme } = useTheme()
 
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [collapsed, setCollapsed] = useState(false)
 
   const navItems = useMemo<NavItem[]>(
     () => [
@@ -39,6 +40,11 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   )
 
   const visibleNav = navItems.filter((item) => !item.adminOnly || user?.isAdmin)
+
+  const activeLabel = useMemo(() => {
+    const hit = visibleNav.find((x) => x.href === pathname)
+    return hit?.label || ''
+  }, [visibleNav, pathname])
 
   function toggleTheme() {
     const effective = resolvedTheme === 'dark' ? 'dark' : 'light'
@@ -56,45 +62,65 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   }
 
   function Sidebar({ variant }: { variant: 'desktop' | 'mobile' }) {
+    const isDesktop = variant === 'desktop'
+    const isCollapsed = isDesktop ? collapsed : false
     return (
       <aside
         className={cn(
-          'flex h-full w-[280px] shrink-0 flex-col border-r bg-background',
+          'flex h-full shrink-0 flex-col border-r bg-background',
+          isDesktop ? (isCollapsed ? 'w-[84px]' : 'w-[280px]') : 'w-[280px]',
           variant === 'desktop' ? 'hidden md:flex' : 'flex'
         )}
       >
-        <div className="flex items-center justify-between px-5 py-4">
-          <div className="flex items-center gap-2">
+        <div className={cn('flex items-center justify-between py-4', isCollapsed ? 'px-3' : 'px-5')}>
+          <div className={cn('flex items-center gap-2', isCollapsed ? 'justify-center' : '')}>
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
               <Home className="h-5 w-5" />
             </div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">WebStack</div>
-              <div className="truncate text-xs text-muted-foreground">配置管理台</div>
-            </div>
+            {!isCollapsed ? (
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold">WebStack</div>
+                <div className="truncate text-xs text-muted-foreground">配置管理台</div>
+              </div>
+            ) : null}
           </div>
+
           {variant === 'mobile' ? (
             <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label="关闭侧边栏">
               <X className="h-5 w-5" />
             </Button>
-          ) : null}
+          ) : (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setCollapsed((v) => !v)}
+              aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
+              className={cn(isCollapsed ? 'mx-auto' : '')}
+            >
+              {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+            </Button>
+          )}
         </div>
 
-        <div className="px-5 pb-4">
-          <div className="flex items-center gap-3 rounded-2xl border bg-muted/30 px-4 py-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background shadow-sm">
-              <Users className="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">{user?.username || '-'}</div>
-              <div className="truncate text-xs text-muted-foreground">{user?.isAdmin ? '管理员' : '用户'}</div>
+        {!isCollapsed ? (
+          <div className="px-5 pb-4">
+            <div className="flex items-center gap-3 rounded-2xl border bg-muted/30 px-4 py-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-background shadow-sm">
+                <Users className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-sm font-semibold">{user?.username || '-'}</div>
+                <div className="truncate text-xs text-muted-foreground">{user?.isAdmin ? '管理员' : '用户'}</div>
+              </div>
             </div>
           </div>
-        </div>
+        ) : null}
 
-        <nav className="px-3">
-          <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">导航</div>
-          <div className="grid gap-1">
+        <nav className={cn('px-3', isCollapsed ? 'px-2' : '')}>
+          {!isCollapsed ? (
+            <div className="px-3 pb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">导航</div>
+          ) : null}
+          <div className={cn('grid gap-1', isCollapsed ? 'justify-items-center' : '')}>
             {visibleNav.map((item) => {
               const active = pathname === item.href
               return (
@@ -106,40 +132,55 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
                     active ? 'bg-primary/10 text-primary' : 'text-foreground hover:bg-accent'
                   )}
                   onClick={() => setMobileOpen(false)}
+                  title={item.label}
                 >
                   <span className={cn('flex h-8 w-8 items-center justify-center rounded-xl', active ? 'bg-primary/10' : 'bg-muted/50')}>
                     {item.icon}
                   </span>
-                  <span>{item.label}</span>
+                  {!isCollapsed ? <span>{item.label}</span> : null}
                 </Link>
               )
             })}
           </div>
         </nav>
 
-        <div className="mt-auto px-5 py-5">
+        <div className={cn('mt-auto py-5', isCollapsed ? 'px-3' : 'px-5')}>
           <div className="grid gap-2">
             <Button
               variant="outline"
-              className="justify-between"
+              className={cn('justify-between', isCollapsed ? 'px-2' : '')}
               onClick={() => window.open('/', '_blank', 'noopener,noreferrer')}
             >
               <span className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
                   <Home className="h-4 w-4" />
                 </span>
-                打开导航首页
+                {!isCollapsed ? '打开导航首页' : null}
               </span>
-              <span className="text-xs text-muted-foreground">/</span>
+              {!isCollapsed ? <span className="text-xs text-muted-foreground">/</span> : null}
             </Button>
-            <Button variant="outline" className="justify-between" onClick={onLogout}>
+            <Button variant="outline" className={cn('justify-between', isCollapsed ? 'px-2' : '')} onClick={onLogout}>
               <span className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
                   <LogOut className="h-4 w-4" />
                 </span>
-                退出登录
+                {!isCollapsed ? '退出登录' : null}
               </span>
-              <span className="text-xs text-muted-foreground">清除会话</span>
+              {!isCollapsed ? <span className="text-xs text-muted-foreground">清除会话</span> : null}
+            </Button>
+            <Button
+              variant="outline"
+              className={cn('justify-between', isCollapsed ? 'px-2' : '')}
+              onClick={toggleTheme}
+              aria-label="切换主题"
+            >
+              <span className="flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
+                  {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </span>
+                {!isCollapsed ? '切换主题' : null}
+              </span>
+              {!isCollapsed ? <span className="text-xs text-muted-foreground">{resolvedTheme}</span> : null}
             </Button>
           </div>
         </div>
@@ -152,26 +193,30 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       <Sidebar variant="desktop" />
 
       <div className="min-w-0 flex-1">
-        <div className="flex items-center justify-between border-b bg-background px-4 py-3 md:px-6">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)} aria-label="打开侧边栏">
-              <Menu className="h-5 w-5" />
-            </Button>
-            <div className="min-w-0">
-              <div className="truncate text-base font-semibold">管理后台</div>
-              <div className="truncate text-xs text-muted-foreground">{pathname}</div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={toggleTheme} aria-label="切换主题">
-              {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-        <main className="h-[calc(100dvh-53px)] overflow-auto px-4 py-6 md:px-6">
-          <div className="mx-auto max-w-[1200px]">{children}</div>
+        <main className="h-[100dvh] overflow-y-auto overflow-x-hidden px-4 py-6 pb-24 md:px-6 md:pb-6">
+          <div className="mx-auto w-full max-w-[1400px] min-w-0 2xl:max-w-[1600px]">{children}</div>
         </main>
       </div>
+
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed bottom-6 left-6 z-50 rounded-2xl md:hidden"
+        onClick={() => setMobileOpen(true)}
+        aria-label="打开侧边栏"
+      >
+        <Menu className="h-4 w-4" />
+      </Button>
+
+      <Button
+        variant="outline"
+        size="icon"
+        className="fixed bottom-6 right-6 z-50 rounded-2xl md:hidden"
+        onClick={toggleTheme}
+        aria-label="切换主题"
+      >
+        {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+      </Button>
 
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetContent side="left" className="w-[280px] p-0" aria-label="移动端侧边栏">

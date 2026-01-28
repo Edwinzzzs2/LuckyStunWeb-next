@@ -49,7 +49,16 @@ export async function POST(req: NextRequest) {
   if (!isValidUrl(data.url) || !isValidUrl(data.backup_url) || !isValidUrl(data.internal_url)) {
     return NextResponse.json({ message: 'URL格式不正确' }, { status: 400 })
   }
-  const sortOrder = Number.isFinite(data.sort_order) ? Number(data.sort_order) : 0
+  let sortOrder = data.sort_order
+  if (sortOrder === undefined || sortOrder === null || !Number.isFinite(Number(sortOrder))) {
+    const maxResult = await query(
+      'SELECT MAX(sort_order) as max_sort FROM sites WHERE category_id = $1',
+      [categoryId]
+    )
+    sortOrder = (maxResult[0]?.max_sort ?? -1) + 1
+  } else {
+    sortOrder = Number(sortOrder)
+  }
   const isVisible = data.is_visible === undefined ? true : Boolean(data.is_visible)
   const updatePortEnabled = data.update_port_enabled === undefined ? true : Boolean(data.update_port_enabled)
   const result = await execute(

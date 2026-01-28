@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { readJson } from '@/lib/api'
-import { execute } from '@/lib/db'
+import { query, execute } from '@/lib/db'
 
 type Body = { name?: string; en_name?: string; icon?: string; parent_id?: number | string | null; sort_order?: number }
 
@@ -23,7 +23,16 @@ export async function POST(req: NextRequest, context: { params: Promise<{ id: st
   if (parentId === categoryId) {
     return NextResponse.json({ message: '不能将分类的父级设置为自身' }, { status: 400 })
   }
-  const sortOrder = Number.isFinite(data?.sort_order) ? Number(data?.sort_order) : 0
+  let sortOrder = data?.sort_order
+  if (sortOrder === undefined || sortOrder === null || !Number.isFinite(Number(sortOrder))) {
+    const maxResult = await query(
+      'SELECT MAX(sort_order) as max_sort FROM categories WHERE parent_id IS NOT DISTINCT FROM $1',
+      [parentId]
+    )
+    sortOrder = (maxResult[0]?.max_sort ?? -1) + 1
+  } else {
+    sortOrder = Number(sortOrder)
+  }
   const result = await execute(
     'UPDATE categories SET name = $1, en_name = $2, icon = $3, parent_id = $4, sort_order = $5 WHERE id = $6'
     ,
