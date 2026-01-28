@@ -51,9 +51,9 @@ export function SitesMobileList({
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
                   {s.is_visible ? (
-                    <Eye className="h-4 w-4 text-emerald-500" aria-label="显示" title="显示" />
+                    <Eye className="h-4 w-4 text-emerald-500" aria-label="显示" />
                   ) : (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" aria-label="隐藏" title="隐藏" />
+                    <EyeOff className="h-4 w-4 text-muted-foreground" aria-label="隐藏" />
                   )}
                   {isRowBusy(s.id) ? <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
                   <Button
