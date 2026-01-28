@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
-import { ChevronDown, ChevronRight, Plus, Trash2, Pencil } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { ChevronDown, ChevronRight, Menu, Plus, Trash2, Pencil } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import {
   Dialog,
   DialogContent,
@@ -16,6 +17,8 @@ import {
 } from '@/components/ui/dialog'
 import { fetchConsoleJson, postJson } from '@/app/console/_lib/http'
 import { useConsoleToast } from '@/app/console/_components/console-toast'
+import { useConsoleShell } from '@/app/console/_components/console-shell'
+import { CategoriesMobileList } from '@/app/console/(protected)/categories/_components/categories-mobile-list'
 
 type CategoryNode = {
   id: number
@@ -72,6 +75,8 @@ function defaultFormState(): CategoryFormState {
 
 export default function ConsoleCategoriesPage() {
   const { push } = useConsoleToast()
+  const { openSidebar } = useConsoleShell()
+  const didLoadRef = useRef(false)
 
   const [loading, setLoading] = useState(false)
   const [categories, setCategories] = useState<CategoryNode[]>([])
@@ -106,6 +111,8 @@ export default function ConsoleCategoriesPage() {
   }
 
   useEffect(() => {
+    if (didLoadRef.current) return
+    didLoadRef.current = true
     load()
   }, [])
 
@@ -180,99 +187,140 @@ export default function ConsoleCategoriesPage() {
 
   return (
     <div className="grid gap-5">
-      <div className="flex items-center justify-end">
-        <Button onClick={openCreate} disabled={loading} className="rounded-xl">
-          <Plus className="h-4 w-4" />
-          新增分类
-        </Button>
+      <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
+        <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl sm:hidden"
+            onClick={openSidebar}
+            aria-label="打开侧边栏"
+            title="打开菜单"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          <div className="min-w-0">
+            <div className="truncate text-xl font-semibold sm:text-2xl">分类管理</div>
+            <div className="truncate text-sm text-muted-foreground">树形展示，支持新增 / 编辑 / 删除（受父子级与站点引用约束）</div>
+          </div>
+        </div>
+        <div className="flex items-center justify-end">
+          <Button onClick={openCreate} disabled={loading} className="rounded-xl" size="icon" title="新增分类">
+            <Plus className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
-      <Card className="overflow-hidden rounded-3xl">
-        <div className="grid grid-cols-12 gap-3 border-b bg-muted/40 px-6 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-          <div className="col-span-6">分类</div>
-          <div className="col-span-3">标识 / 图标</div>
-          <div className="col-span-1 text-right">排序</div>
-          <div className="col-span-2 text-right">操作</div>
-        </div>
-        <div className="divide-y">
-          {rows.map(({ node, depth }) => {
-            const hasChildren = node.children?.length > 0
-            const expanded = expandedIds.has(node.id)
-            const rawIcon = String(node.icon || '').trim()
-            const iconClass = rawIcon
-              ? rawIcon.includes('iconfont')
-                ? rawIcon
-                : rawIcon.startsWith('icon-')
-                  ? `iconfont ${rawIcon}`
-                  : ''
-              : ''
-            return (
-              <div key={node.id} className="grid grid-cols-12 gap-3 px-6 py-3">
-                <div className="col-span-6 flex min-w-0 items-center gap-2">
-                  <div style={{ width: depth * 18 }} className="shrink-0" />
-                  {hasChildren ? (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7"
-                      onClick={() => {
-                        setExpandedIds((prev) => {
-                          const next = new Set(prev)
-                          if (next.has(node.id)) next.delete(node.id)
-                          else next.add(node.id)
-                          return next
-                        })
-                      }}
-                      aria-label={expanded ? '收起' : '展开'}
-                    >
-                      {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                    </Button>
-                  ) : (
-                    <div className="h-7 w-7" />
-                  )}
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{node.name}</div>
-                    <div className="truncate text-xs text-muted-foreground">{node.parent_id ? '子分类' : '根分类'}</div>
-                  </div>
-                </div>
+      <CategoriesMobileList
+        rows={rows}
+        expandedIds={expandedIds}
+        setExpandedIds={setExpandedIds}
+        onEdit={openEdit}
+        onDelete={setDeleteTarget}
+        loading={loading}
+      />
 
-                <div className="col-span-3 flex min-w-0 items-center gap-2">
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-base">
-                    {iconClass ? <i className={iconClass} aria-hidden="true" /> : rawIcon || '📁'}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-medium">{node.en_name || '-'}</div>
-                    <div className="truncate text-xs text-muted-foreground">ID: {node.id}</div>
-                  </div>
-                </div>
+      <Card className="hidden overflow-hidden rounded-none sm:block">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-muted/40">
+              <TableHead className="w-[45%] text-xs font-semibold uppercase tracking-wide text-muted-foreground">分类</TableHead>
+              <TableHead className="w-[25%] text-xs font-semibold uppercase tracking-wide text-muted-foreground">标识 / 图标</TableHead>
+              <TableHead className="w-[10%] text-right text-xs font-semibold uppercase tracking-wide text-muted-foreground">排序</TableHead>
+              <TableHead className="w-[20%] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">操作</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {rows.map(({ node, depth }) => {
+              const hasChildren = node.children?.length > 0
+              const expanded = expandedIds.has(node.id)
+              const rawIcon = String(node.icon || '').trim()
+              const iconClass = rawIcon
+                ? rawIcon.includes('iconfont')
+                  ? rawIcon
+                  : rawIcon.startsWith('icon-')
+                    ? `iconfont ${rawIcon}`
+                    : ''
+                : ''
+              return (
+                <TableRow key={node.id}>
+                  <TableCell className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div style={{ width: depth * 18 }} className="shrink-0" />
+                      {hasChildren ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-7 w-7"
+                          onClick={() => {
+                            setExpandedIds((prev) => {
+                              const next = new Set(prev)
+                              if (next.has(node.id)) next.delete(node.id)
+                              else next.add(node.id)
+                              return next
+                            })
+                          }}
+                          aria-label={expanded ? '收起' : '展开'}
+                          title={expanded ? '收起' : '展开'}
+                        >
+                          {expanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                        </Button>
+                      ) : (
+                        <div className="h-7 w-7" />
+                      )}
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-semibold">{node.name}</div>
+                        <div className="truncate text-xs text-muted-foreground">{node.parent_id ? '子分类' : '根分类'}</div>
+                      </div>
+                    </div>
+                  </TableCell>
 
-                <div className="col-span-1 text-right">
-                  <span className="rounded-lg bg-muted px-2 py-1 text-xs font-semibold">{String(node.sort_order ?? 0)}</span>
-                </div>
+                  <TableCell className="min-w-0">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <span className="inline-flex h-8 w-8 items-center justify-center rounded-xl bg-muted text-base">
+                        {iconClass ? <i className={iconClass} aria-hidden="true" /> : rawIcon || '📁'}
+                      </span>
+                      <div className="min-w-0">
+                        <div className="truncate text-sm font-medium">{node.en_name || '-'}</div>
+                        <div className="truncate text-xs text-muted-foreground">ID: {node.id}</div>
+                      </div>
+                    </div>
+                  </TableCell>
 
-                <div className="col-span-2 flex items-center justify-end gap-2">
-                  <Button variant="outline" size="sm" className="rounded-xl" onClick={() => openEdit(node)}>
-                    <Pencil className="h-4 w-4" />
-                    编辑
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="rounded-xl border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200"
-                    onClick={() => setDeleteTarget(node)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    删除
-                  </Button>
-                </div>
-              </div>
-            )
-          })}
-          {rows.length === 0 ? (
-            <div className="px-6 py-10 text-center text-sm text-muted-foreground">{loading ? '加载中...' : '暂无分类'}</div>
-          ) : null}
-        </div>
+                  <TableCell className="text-right">
+                    <span className="rounded-lg bg-muted px-2 py-1 text-xs font-semibold">{String(node.sort_order ?? 0)}</span>
+                  </TableCell>
+
+                  <TableCell className="text-left">
+                    <div className="flex items-center justify-start gap-2">
+                      <Button variant="outline" size="icon" className="rounded-xl" onClick={() => openEdit(node)} aria-label="编辑" title="编辑">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="rounded-xl border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 hover:text-rose-800 dark:border-rose-900/40 dark:bg-rose-950/30 dark:text-rose-200"
+                        onClick={() => setDeleteTarget(node)}
+                        aria-label="删除"
+                        title="删除"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )
+            })}
+            {rows.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
+                  {loading ? '加载中...' : '暂无分类'}
+                </TableCell>
+              </TableRow>
+            ) : null}
+          </TableBody>
+        </Table>
       </Card>
 
       <Dialog open={editorOpen} onOpenChange={(open) => {

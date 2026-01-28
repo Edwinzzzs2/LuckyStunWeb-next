@@ -72,16 +72,6 @@ export function SitesTable({
               />
             </TableHead>
 
-            <TableHead className="group relative" style={{ width: tableColWidth.id }}>
-              ID
-              <div className="pointer-events-none absolute right-0 top-0 h-12 w-px bg-border/70 group-hover:bg-primary/60" />
-              <div
-                className="absolute -right-2 top-0 h-12 w-4 cursor-col-resize"
-                onMouseDown={(e) => resizeStart('id', e)}
-                aria-label="调整ID列宽"
-              />
-            </TableHead>
-
             <TableHead className="group relative" style={{ width: tableColWidth.info }}>
               站点信息
               <div className="pointer-events-none absolute right-0 top-0 h-12 w-px bg-border/70 group-hover:bg-primary/60" />
@@ -102,7 +92,7 @@ export function SitesTable({
               />
             </TableHead>
 
-            <TableHead className="text-right" style={{ width: tableColWidth.actions }}>
+            <TableHead className="text-left" style={{ width: tableColWidth.actions }}>
               操作
             </TableHead>
           </TableRow>
@@ -125,12 +115,12 @@ export function SitesTable({
                   <SiteLogo logo={s.logo} title={s.title} />
                 </div>
               </TableCell>
-              <TableCell className="text-sm font-semibold" style={{ width: tableColWidth.id }}>
-                {s.id}
-              </TableCell>
               <TableCell className="min-w-0" style={{ width: tableColWidth.info }}>
                 <div className="min-w-0">
-                  <div className="truncate text-sm font-semibold">{s.title}</div>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="truncate text-sm font-semibold">{s.title}</div>
+                    <div className="shrink-0 text-xs text-muted-foreground">#{s.id}</div>
+                  </div>
                   <div className="mt-0.5 flex min-w-0 items-center gap-2 text-xs text-muted-foreground">
                     <span className="shrink-0">{categoryName(s.category_id)}</span>
                     <span className="truncate">{s.desc || '-'}</span>
@@ -144,6 +134,7 @@ export function SitesTable({
                     target="_blank"
                     rel="noreferrer"
                     className="inline-flex min-w-0 flex-1 items-center gap-1 truncate text-sm text-primary hover:underline"
+                    title="主链接"
                   >
                     <ExternalLink className="h-3.5 w-3.5 shrink-0" />
                     <span className="truncate">{s.url}</span>
@@ -154,6 +145,7 @@ export function SitesTable({
                       target="_blank"
                       rel="noreferrer"
                       className="shrink-0 rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
+                      title={s.backup_url}
                     >
                       备
                     </a>
@@ -164,14 +156,15 @@ export function SitesTable({
                       target="_blank"
                       rel="noreferrer"
                       className="shrink-0 rounded-md border bg-background px-2 py-1 text-xs text-muted-foreground hover:bg-accent"
+                      title={s.internal_url}
                     >
                       内
                     </a>
                   ) : null}
                 </div>
               </TableCell>
-              <TableCell className="text-right" style={{ width: tableColWidth.actions }}>
-                <div className="flex items-center justify-end gap-2">
+              <TableCell className="text-left" style={{ width: tableColWidth.actions }}>
+                <div className="flex items-center justify-start gap-2">
                   <div className="flex items-center gap-2">
                     {!s.is_visible ? <EyeOff className="h-4 w-4 text-muted-foreground" /> : null}
                     <Switch
@@ -189,6 +182,7 @@ export function SitesTable({
                     onClick={() => onEdit(s)}
                     disabled={isRowBusy(s.id) || loading}
                     aria-label="编辑"
+                    title="编辑"
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
@@ -199,6 +193,7 @@ export function SitesTable({
                     onClick={() => onDelete(s)}
                     disabled={isRowBusy(s.id) || loading}
                     aria-label="删除"
+                    title="删除"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -209,7 +204,7 @@ export function SitesTable({
 
           {items.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+              <TableCell colSpan={5} className="py-10 text-center text-sm text-muted-foreground">
                 {loading ? '加载中...' : '暂无站点'}
               </TableCell>
             </TableRow>

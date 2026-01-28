@@ -161,11 +161,11 @@ export function SiteEditorDialog({
             <SheetDescription>{editing ? `ID: ${editing.id}` : '创建一个新的站点'}</SheetDescription>
           </SheetHeader>
           <div className="mt-4">{body}</div>
-          <SheetFooter className="mt-6">
-            <Button variant="outline" className="rounded-xl" onClick={() => onOpenChange(false)}>
+          <SheetFooter className="mt-6 flex flex-row justify-end gap-2">
+            <Button variant="outline" className="rounded-xl" size="sm" onClick={() => onOpenChange(false)}>
               取消
             </Button>
-            <Button className="rounded-xl" onClick={onSave} disabled={saving}>
+            <Button className="rounded-xl" size="sm" onClick={onSave} disabled={saving}>
               {saving ? '保存中...' : editing ? '保存' : '创建'}
             </Button>
           </SheetFooter>

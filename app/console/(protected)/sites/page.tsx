@@ -1,7 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState, type MouseEvent as ReactMouseEvent } from 'react'
-import { Loader2, Plus, Search, X } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
+import { Layers, Loader2, Menu, Plus, Search, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,9 +16,12 @@ import { SiteDeleteDialog } from '@/app/console/(protected)/sites/_components/si
 import { SitesBatchDialog } from '@/app/console/(protected)/sites/_components/sites-batch-dialog'
 import type { CategoryFlat, SiteFormState, SiteRow, TableColKey } from '@/app/console/(protected)/sites/_components/types'
 import { toForm } from '@/app/console/(protected)/sites/_components/types'
+import { useConsoleShell } from '@/app/console/_components/console-shell'
 
 export default function ConsoleSitesPage() {
   const { push } = useConsoleToast()
+  const { openSidebar } = useConsoleShell()
+  const didLoadRef = useRef(false)
 
   const [loading, setLoading] = useState(false)
   const [sites, setSites] = useState<SiteRow[]>([])
@@ -34,7 +37,6 @@ export default function ConsoleSitesPage() {
   const [tableColWidth, setTableColWidth] = useState<Record<TableColKey, number>>(() => ({
     select: 44,
     logo: 56,
-    id: 72,
     info: 320,
     links: 420,
     actions: 190,
@@ -77,7 +79,6 @@ export default function ConsoleSitesPage() {
       const next: Record<TableColKey, number> = {
         select: Number(parsed.select) || 44,
         logo: Number(parsed.logo) || 56,
-        id: Number(parsed.id) || 72,
         info: Number(parsed.info) || 320,
         links: Number(parsed.links) || 420,
         actions: Number(parsed.actions) || 190,
@@ -110,7 +111,6 @@ export default function ConsoleSitesPage() {
       const min: Record<TableColKey, number> = {
         select: 44,
         logo: 56,
-        id: 60,
         info: 220,
         links: 260,
         actions: 150,
@@ -159,6 +159,8 @@ export default function ConsoleSitesPage() {
   }
 
   useEffect(() => {
+    if (didLoadRef.current) return
+    didLoadRef.current = true
     loadAll()
   }, [])
 
@@ -353,29 +355,54 @@ export default function ConsoleSitesPage() {
 
   return (
     <div className="grid gap-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 truncate text-2xl font-semibold">
-            网站管理
-            {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : null}
+      <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
+        <div className="grid min-w-0 grid-cols-[auto_1fr] items-start gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl sm:hidden"
+            onClick={openSidebar}
+            aria-label="打开侧边栏"
+            title="打开菜单"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 truncate text-xl font-semibold sm:text-2xl">
+              网站管理
+              {loading ? <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" /> : null}
+            </div>
+            <div className="truncate text-sm text-muted-foreground">支持增删改、显隐开关、批量改分类/显隐、搜索过滤</div>
           </div>
-          <div className="truncate text-sm text-muted-foreground">支持增删改、显隐开关、批量改分类/显隐、搜索过滤</div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           {selected.size > 0 ? (
-            <Button variant="outline" className="rounded-xl" onClick={() => setBatchOpen(true)}>
-              批量操作（{selected.size}）
+            <Button
+              variant="outline"
+              className="rounded-xl"
+              size="icon"
+              onClick={() => setBatchOpen(true)}
+              aria-label={`批量操作（${selected.size}）`}
+              title={`批量操作（${selected.size}）`}
+            >
+              <Layers className="h-4 w-4" />
             </Button>
           ) : null}
-          <Button onClick={openCreate} disabled={loading} className="rounded-xl">
+          <Button
+            onClick={openCreate}
+            disabled={loading}
+            className="rounded-xl"
+            size="icon"
+            aria-label="新增站点"
+            title="新增站点"
+          >
             <Plus className="h-4 w-4" />
-            新增站点
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <div className="relative w-full sm:w-80">
+      <div className="flex flex-nowrap gap-2 sm:flex-row sm:items-center">
+        <div className="relative min-w-0 flex-1 sm:w-80 sm:flex-none">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             type="search"
@@ -385,11 +412,11 @@ export default function ConsoleSitesPage() {
               setPage(1)
             }}
             placeholder="按标题 / URL 搜索"
-            className="pl-9"
+            className="min-w-0 pl-9"
             disabled={loading}
           />
         </div>
-        <div className="w-full sm:w-64">
+        <div className="min-w-0 flex-1 sm:w-64 sm:flex-none">
           <select
             className="h-10 w-full rounded-md border bg-background px-3 text-sm"
             value={categoryFilter}
@@ -435,7 +462,7 @@ export default function ConsoleSitesPage() {
         onDelete={setDeleteTarget}
       />
 
-      <Card className="hidden rounded-3xl sm:block">
+      <Card className="hidden rounded-none sm:block">
         <SitesTable
           items={pageItems}
           selected={selected}

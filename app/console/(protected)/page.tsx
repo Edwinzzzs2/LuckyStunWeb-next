@@ -1,14 +1,15 @@
 "use client"
 
 import Link from 'next/link'
-import { useEffect, useMemo, useState } from 'react'
-import { FolderTree, Globe, RefreshCw, Users } from 'lucide-react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { FolderTree, Globe, Menu, RefreshCw, Users } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { fetchConsoleJson } from '@/app/console/_lib/http'
 import { useConsoleAuth } from '@/app/console/_components/console-auth'
 import { useConsoleToast } from '@/app/console/_components/console-toast'
+import { useConsoleShell } from '@/app/console/_components/console-shell'
 
 type CategoryNode = {
   id: number
@@ -53,6 +54,8 @@ function countAll(nodes: CategoryNode[]) {
 export default function ConsoleDashboardPage() {
   const { user } = useConsoleAuth()
   const { push } = useConsoleToast()
+  const { openSidebar } = useConsoleShell()
+  const didLoadRef = useRef(false)
   const [categories, setCategories] = useState<CategoryNode[]>([])
   const [sites, setSites] = useState<SiteRow[]>([])
   const [loading, setLoading] = useState(false)
@@ -74,6 +77,8 @@ export default function ConsoleDashboardPage() {
   }
 
   useEffect(() => {
+    if (didLoadRef.current) return
+    didLoadRef.current = true
     load()
   }, [])
 
@@ -87,15 +92,36 @@ export default function ConsoleDashboardPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="text-2xl font-semibold">欢迎，{user?.username}</div>
-          <div className="text-sm text-muted-foreground">快速查看统计与常用入口</div>
+      <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
+        <div className="grid grid-cols-[auto_1fr] items-start gap-3">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl sm:hidden"
+            onClick={openSidebar}
+            aria-label="打开侧边栏"
+            title="打开菜单"
+          >
+            <Menu className="h-4 w-4" />
+          </Button>
+          <div>
+            <div className="text-xl font-semibold sm:text-2xl">欢迎，{user?.username}</div>
+            <div className="text-sm text-muted-foreground">快速查看统计与常用入口</div>
+          </div>
         </div>
-        <Button variant="outline" onClick={load} disabled={loading}>
-          <RefreshCw className="h-4 w-4" />
-          {loading ? '刷新中' : '刷新统计'}
-        </Button>
+        <div className="flex items-center justify-end">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-xl"
+            onClick={load}
+            disabled={loading}
+            aria-label={loading ? '刷新中' : '刷新统计'}
+            title={loading ? '刷新中' : '刷新统计'}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-4">
@@ -179,4 +205,3 @@ export default function ConsoleDashboardPage() {
     </div>
   )
 }
-

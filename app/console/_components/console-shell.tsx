@@ -2,12 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useMemo, useState } from 'react'
+import { createContext, useContext, useMemo, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
-import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { useConsoleAuth } from '@/app/console/_components/console-auth'
 import { useConsoleToast } from '@/app/console/_components/console-toast'
@@ -19,6 +19,14 @@ type NavItem = {
   adminOnly?: boolean
 }
 
+const ConsoleShellContext = createContext<{ openSidebar: () => void } | null>(null)
+
+export function useConsoleShell() {
+  const ctx = useContext(ConsoleShellContext)
+  if (!ctx) throw new Error('ConsoleShellContext')
+  return ctx
+}
+
 export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
   const router = useRouter()
@@ -28,6 +36,8 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+
+  const openSidebar = useMemo(() => () => setMobileOpen(true), [])
 
   const navItems = useMemo<NavItem[]>(
     () => [
@@ -67,7 +77,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
     return (
       <aside
         className={cn(
-          'flex h-full shrink-0 flex-col border-r bg-background',
+          'flex h-full min-h-0 shrink-0 flex-col border-r bg-background',
           isDesktop ? (isCollapsed ? 'w-[84px]' : 'w-[280px]') : 'w-[280px]',
           variant === 'desktop' ? 'hidden md:flex' : 'flex'
         )}
@@ -85,11 +95,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
             ) : null}
           </div>
 
-          {variant === 'mobile' ? (
-            <Button variant="ghost" size="icon" onClick={() => setMobileOpen(false)} aria-label="关闭侧边栏">
-              <X className="h-5 w-5" />
-            </Button>
-          ) : (
+          {variant === 'mobile' ? null : (
             <Button
               variant="ghost"
               size="icon"
@@ -189,8 +195,9 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex h-[100dvh] w-full overflow-hidden">
-      <Sidebar variant="desktop" />
+    <ConsoleShellContext.Provider value={{ openSidebar }}>
+      <div className="flex h-[100dvh] w-full overflow-hidden">
+        <Sidebar variant="desktop" />
 
       <div className="min-w-0 flex-1">
         <main className="h-[100dvh] overflow-y-auto overflow-x-hidden px-4 py-6 pb-24 md:px-6 md:pb-6">
@@ -218,11 +225,15 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
         {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
       </Button>
 
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[280px] p-0" aria-label="移动端侧边栏">
-          <Sidebar variant="mobile" />
-        </SheetContent>
-      </Sheet>
-    </div>
+        <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+          <SheetContent side="left" className="w-[280px] p-0 overflow-y-auto" aria-label="移动端侧边栏">
+            <SheetHeader className="sr-only">
+              <SheetTitle>移动端侧边栏</SheetTitle>
+            </SheetHeader>
+            <Sidebar variant="mobile" />
+          </SheetContent>
+        </Sheet>
+      </div>
+    </ConsoleShellContext.Provider>
   )
 }
