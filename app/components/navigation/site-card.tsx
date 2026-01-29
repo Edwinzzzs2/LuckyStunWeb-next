@@ -26,9 +26,11 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <Card
-          className="group relative border border-border/60 bg-card shadow-sm transition-all duration-200 ease-out cursor-pointer [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-black/10 dark:[@media(hover:hover)]:hover:shadow-black/40"
+          className="group relative border border-border/60 bg-card shadow-sm transition-all duration-200 ease-out cursor-pointer focus:outline-none [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-black/10 dark:[@media(hover:hover)]:hover:shadow-black/40"
           tabIndex={0}
           onClick={(e) => {
+            // 如果事件已经被处理（例如由子元素阻止冒泡），则不再执行
+            if (e.defaultPrevented) return
             const btn = (e.target as HTMLElement).closest('button')
             if (btn) return
             if (!targetUrl) return
@@ -48,21 +50,30 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="absolute top-2.5 right-2.5 h-7 w-7 rounded-md bg-background/80 backdrop-blur shadow-sm opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+                  className="absolute top-2.5 right-2.5 h-7 w-7 rounded-md bg-background/80 backdrop-blur shadow-sm focus-visible:ring-0 opacity-0 pointer-events-auto transition-opacity duration-200 hidden [@media(hover:hover)]:inline-flex [@media(hover:hover)]:group-hover:opacity-100 group-focus-within:opacity-100"
                   aria-label="更多操作"
                   title="更多操作"
                 >
                   <Ellipsis className="opacity-80" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem disabled={!mainUrl} onSelect={() => mainUrl && openNewTab(mainUrl)}>
+              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                <DropdownMenuItem disabled={!mainUrl} onSelect={(e) => {
+                  e.preventDefault()
+                  if (mainUrl) openNewTab(mainUrl)
+                }}>
                   打开外网
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled={!backupUrl} onSelect={() => backupUrl && openNewTab(backupUrl)}>
+                <DropdownMenuItem disabled={!backupUrl} onSelect={(e) => {
+                  e.preventDefault()
+                  if (backupUrl) openNewTab(backupUrl)
+                }}>
                   打开备用
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled={!internalUrl} onSelect={() => internalUrl && openNewTab(internalUrl)}>
+                <DropdownMenuItem disabled={!internalUrl} onSelect={(e) => {
+                  e.preventDefault()
+                  if (internalUrl) openNewTab(internalUrl)
+                }}>
                   打开内网
                 </DropdownMenuItem>
               </DropdownMenuContent>

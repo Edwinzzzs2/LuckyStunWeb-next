@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getAuthUser } from '@/lib/auth'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
 
@@ -36,16 +35,28 @@ function updateUrlPort(url: string | null, newPort: number | null) {
 }
 
 export async function POST(req: NextRequest) {
-  const user = getAuthUser(req)
-  if (!user) return NextResponse.json({ message: '需要登录' }, { status: 401 })
-  if (!user.isAdmin) return NextResponse.json({ message: '需要管理员权限' }, { status: 403 })
+  const webhookToken = process.env.UPDATE_PORTS_WEBHOOK_TOKEN
+  const bearer = (req.headers.get('authorization') || '').trim()
+  const bearerToken = bearer.toLowerCase().startsWith('bearer ') ? bearer.slice(7).trim() : ''
+  if (!webhookToken || bearerToken !== webhookToken) {
+    return NextResponse.json({ message: '未授权' }, { status: 401 })
+  }
+
   const { data, error } = await readJson<Body>(req)
   if (error) return error
-  const port = data?.port
-  if (port !== null && (port === undefined || !Number.isInteger(Number(port)) || port < 0 || port > 65535)) {
+
+  const rawPort = (data as any)?.port
+  const port = rawPort === null ? null : rawPort === undefined ? undefined : Number(rawPort)
+  if (port !== null && (port === undefined || !Number.isInteger(port) || port < 0 || port > 65535)) {
     return NextResponse.json({ code: 1, message: '端口号应为 0-65535 之间的整数或 null（去除端口号）' }, { status: 400 })
   }
-  const domains = Array.isArray(data?.domains) ? data?.domains : []
+
+  const rawDomains = (data as any)?.domains
+  const domains = Array.isArray(rawDomains)
+    ? rawDomains.filter((x: unknown) => typeof x === 'string').map((x: string) => x.trim()).filter(Boolean)
+    : typeof rawDomains === 'string'
+      ? [rawDomains.trim()].filter(Boolean)
+      : []
   if (domains.length === 0) {
     return NextResponse.json({ code: 1, message: '域名数组为必填项' }, { status: 400 })
   }
@@ -55,7 +66,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ code: 1, message: `无效的域名格式: ${domain}` }, { status: 400 })
     }
   }
-  const ids = Array.isArray(data?.ids) ? data?.ids : []
+  const ids = Array.isArray((data as any)?.ids) ? (data as any).ids : []
   if (ids.length > 0) {
     for (const id of ids) {
       if (!Number.isInteger(Number(id)) || Number(id) <= 0) {

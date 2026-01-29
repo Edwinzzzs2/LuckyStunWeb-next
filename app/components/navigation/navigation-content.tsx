@@ -24,7 +24,7 @@ export function NavigationContent({
   sectionDepths,
 }: NavigationContentProps) {
   return (
-    <main ref={contentScrollRef} className="h-full overflow-y-auto custom-scrollbar px-4 sm:px-6 lg:px-10 py-6 lg:py-8">
+    <main ref={contentScrollRef} className="h-full overflow-y-auto custom-scrollbar px-6 sm:px-8 lg:px-10 py-6 lg:py-8">
       <div className="mx-auto w-full max-w-[1560px] space-y-4">
         {sections.map((section) => (
           <section key={section.id} id={`sec-${section.id}`} className="scroll-mt-20">
