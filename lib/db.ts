@@ -20,6 +20,10 @@ function getPool() {
   return pool
 }
 
+/**
+ * 确保数据库表和初始数据已就绪
+ * 包含：用户表、分类表、网站表及其索引
+ */
 async function ensureInitialized() {
   if (initPromise) return initPromise
   initPromise = (async () => {
@@ -79,7 +83,7 @@ async function ensureInitialized() {
     const adminResults = await p.query('SELECT id FROM users WHERE username = $1 LIMIT 1', [adminUsername])
     
     if (adminResults.rows.length === 0) {
-      // 仅在 admin 账号不存在时初始化一次
+      // 仅在 admin 账号不存在时初始化一次，后续支持在界面修改密码并持久化
       const passwordHash = await bcrypt.hash(adminPassword, 10)
       await p.query(
         'INSERT INTO users (username, password_hash, is_admin) VALUES ($1, $2, $3) ON CONFLICT (username) DO NOTHING',

@@ -39,7 +39,12 @@ export async function getNavigationTree() {
   return roots
 }
 
+/**
+ * 获取导航数据的主入口
+ * 支持 SSR（服务端渲染），根据环境变量决定从数据库还是 Mock 加载
+ */
 export async function getNavigationData() {
+  // 检查是否开启了 Mock 模式
   if (process.env.NEXT_PUBLIC_NAV_DATA_SOURCE === 'mock') {
     return {
       sections: demoSections,
@@ -47,6 +52,7 @@ export async function getNavigationData() {
     }
   }
 
+  // 默认从数据库加载并转换数据
   const tree = await getNavigationTree()
   return transformApiData(tree)
 }

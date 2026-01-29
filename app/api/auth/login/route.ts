@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
   }
   const user = users[0]
   const ok = await bcrypt.compare(password, user.password_hash)
+
   if (!ok) {
     return NextResponse.json({ message: '用户名或密码错误' }, { status: 401 })
   }
