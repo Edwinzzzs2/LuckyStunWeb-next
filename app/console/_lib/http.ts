@@ -1,12 +1,26 @@
 export type ApiError = Error & { status?: number }
 
 export async function fetchConsoleJson<T>(input: RequestInfo | URL, init?: RequestInit): Promise<T> {
+  const headers: HeadersInit = {
+    ...(init?.headers || {}),
+  }
+  
+  // Try to get token from localStorage for Bearer auth fallback
+  // This helps when cookies are not available or blocked (e.g. some PWA scenarios)
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('console_token')
+    if (token) {
+      // @ts-ignore
+      headers['Authorization'] = `Bearer ${token}`
+    }
+  }
+
   const res = await fetch(input, {
     cache: 'no-store',
+    // Ensure cookies are sent with requests, especially for PWA/mobile
+    credentials: 'include',
     ...init,
-    headers: {
-      ...(init?.headers || {}),
-    },
+    headers,
   })
 
   if (!res.ok) {

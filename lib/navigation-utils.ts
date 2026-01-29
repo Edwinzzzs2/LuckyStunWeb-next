@@ -67,5 +67,13 @@ export function transformApiData(tree: ApiCategoryNode[]): { sections: Section[]
     },
   ]
 
+  const hasConsole = menuGroups.some((group) => group.items.some((item) => item.action === 'console'))
+  if (!hasConsole) {
+    menuGroups.push({
+      label: '系统',
+      items: [{ id: 'console', label: '进入控制台', icon: 'icon-tuchuangguanli', action: 'console' }],
+    })
+  }
+
   return { sections, menuGroups }
 }

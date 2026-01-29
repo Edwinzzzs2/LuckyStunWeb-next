@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken'
+import { logger } from '@/lib/logger'
 type TokenPayload = { userId: number; username: string; isAdmin: boolean }
 
 function getSecret() {
@@ -14,13 +15,15 @@ export function signToken(payload: TokenPayload) {
 export function verifyToken(token: string) {
   try {
     return jwt.verify(token, getSecret()) as TokenPayload
-  } catch {
+  } catch (e) {
+    logger.error('[Auth] Token verification failed:', e)
     return null
   }
 }
 
 function getCookieToken(req: Request) {
   const cookieHeader = req.headers.get('cookie') || ''
+  // console.log('[Auth] Cookie header:', cookieHeader)
   const parts = cookieHeader.split(';')
   for (const part of parts) {
     const [key, ...rest] = part.trim().split('=')
@@ -35,10 +38,24 @@ export function getAuthUser(req: Request) {
   const auth = req.headers.get('authorization') || ''
   const parts = auth.split(' ')
   if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+    logger.info('[Auth] Found Bearer token')
     const payload = verifyToken(parts[1])
-    return payload
+    if (payload) {
+      // console.log(`[Auth] Bearer verified for ${payload.username}`)
+      return payload
+    }
+    logger.warn('[Auth] Bearer token verification failed')
   }
+  
   const cookieToken = getCookieToken(req)
-  if (!cookieToken) return null
-  return verifyToken(cookieToken)
+  if (!cookieToken) {
+    logger.info('[Auth] No token found in cookies or authorization header')
+    return null
+  }
+  
+  const payload = verifyToken(cookieToken)
+  if (!payload) {
+    logger.warn('[Auth] Cookie token verification failed')
+  }
+  return payload
 }

@@ -1,8 +1,10 @@
 import { query } from '@/lib/db'
 import { transformApiData } from './navigation-utils'
 import { demoSections, demoMenuGroups } from '@/data/navigation/mock'
+import { logger } from '@/lib/logger'
 
 export async function getNavigationTree() {
+  logger.info('[Navigation] Fetching tree from DB...')
   const categories = await query(
     'SELECT id, name, en_name, icon, parent_id, sort_order FROM categories ORDER BY parent_id ASC, sort_order ASC, id ASC'
   )
@@ -36,6 +38,7 @@ export async function getNavigationTree() {
     })
   }
   attachSites(roots)
+  logger.info(`[Navigation] Tree built with ${roots.length} root categories`)
   return roots
 }
 
@@ -44,6 +47,7 @@ export async function getNavigationTree() {
  * 支持 SSR（服务端渲染），根据环境变量决定从数据库还是 Mock 加载
  */
 export async function getNavigationData() {
+  logger.info('[Navigation] getNavigationData called')
   // 检查是否开启了 Mock 模式
   if (process.env.NEXT_PUBLIC_NAV_DATA_SOURCE === 'mock') {
     return {

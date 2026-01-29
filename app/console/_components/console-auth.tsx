@@ -47,12 +47,16 @@ export function ConsoleAuthProvider({ children }: { children: React.ReactNode })
   }, [])
 
   const login = useCallback(async (username: string, password: string) => {
-    const res = await postJson<{ user: ConsoleUser }>('/api/auth/login', { username, password })
+    const res = await postJson<{ user: ConsoleUser; token?: string }>('/api/auth/login', { username, password })
+    if (res.token) {
+      localStorage.setItem('console_token', res.token)
+    }
     setState({ user: res.user, isLoading: false })
   }, [])
 
   const logout = useCallback(async () => {
     await postJson('/api/auth/logout')
+    localStorage.removeItem('console_token')
     setState({ user: null, isLoading: false })
   }, [])
 
