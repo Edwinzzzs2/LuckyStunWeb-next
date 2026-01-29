@@ -1,10 +1,8 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
-
+import { useState } from 'react'
 import type { MenuGroup, Section } from '@/data/navigation/types'
 import { demoMenuGroups, demoSections } from '@/data/navigation/mock'
-import { fetchNavigationDataFromApi } from '@/lib/navigation-data'
 
 type DataSource = 'api' | 'mock'
 
@@ -16,71 +14,32 @@ type NavigationDataState = {
   error?: string
 }
 
-function getDefaultSource(): DataSource {
-  const fromEnv = process.env.NEXT_PUBLIC_NAV_DATA_SOURCE
-  return fromEnv === 'mock' ? 'mock' : 'api'
-}
-
-function getSourceFromRuntime(): DataSource | null {
-  try {
-    const url = new URL(window.location.href)
-    const q = url.searchParams.get('source')
-    if (q === 'mock' || q === 'api') return q
-    const stored = localStorage.getItem('nav_data_source')
-    if (stored === 'mock' || stored === 'api') return stored
-  } catch {
-    return null
-  }
-  return null
-}
-
-export function useNavigationData() {
-  const [state, setState] = useState<NavigationDataState>(() => ({
-    sections: demoSections,
-    menuGroups: demoMenuGroups,
-    source: getDefaultSource(),
-    isLoading: getDefaultSource() === 'api',
-  }))
-
-  const apiBaseUrl = useMemo(() => process.env.NEXT_PUBLIC_API_BASE_URL || '', [])
-
-  useEffect(() => {
-    const runtime = getSourceFromRuntime()
-    if (!runtime) return
-    setState((prev) => ({
-      ...prev,
-      source: runtime,
-      isLoading: runtime === 'api',
-    }))
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-
-    async function run() {
-      if (state.source === 'mock') {
-        setState((prev) => ({ ...prev, sections: demoSections, menuGroups: demoMenuGroups, isLoading: false, error: undefined }))
-        return
-      }
-
-      setState((prev) => ({ ...prev, isLoading: true, error: undefined }))
-      try {
-        const data = await fetchNavigationDataFromApi(apiBaseUrl)
-        if (cancelled) return
-        setState((prev) => ({ ...prev, sections: data.sections, menuGroups: data.menuGroups, isLoading: false, error: undefined }))
-      } catch (e: any) {
-        if (cancelled) return
-        const message = typeof e?.message === 'string' ? e.message : '加载导航数据失败'
-        setState((prev) => ({ ...prev, sections: demoSections, menuGroups: demoMenuGroups, source: 'mock', isLoading: false, error: message }))
+/**
+ * 获取导航数据的 Hook
+ * 现在的逻辑极其简化：优先使用 SSR 传入的 initialData。
+ * 不再在客户端进行二次 Fetch 或复杂的 Source 切换比对，从而彻底杜绝刷新闪烁。
+ */
+export function useNavigationData(initialData?: { sections: Section[]; menuGroups: MenuGroup[] }) {
+  const [state] = useState<NavigationDataState>(() => {
+    const isMockMode = process.env.NEXT_PUBLIC_NAV_DATA_SOURCE === 'mock'
+    
+    if (initialData) {
+      return {
+        sections: initialData.sections,
+        menuGroups: initialData.menuGroups,
+        source: isMockMode ? 'mock' : 'api',
+        isLoading: false,
       }
     }
 
-    run()
-    return () => {
-      cancelled = true
+    // 兜底逻辑：如果没有 initialData，则根据环境返回数据
+    return {
+      sections: isMockMode ? demoSections : [],
+      menuGroups: isMockMode ? demoMenuGroups : [],
+      source: isMockMode ? 'mock' : 'api',
+      isLoading: false,
     }
-  }, [apiBaseUrl, state.source])
+  })
 
   return state
 }
-

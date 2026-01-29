@@ -77,7 +77,9 @@ async function ensureInitialized() {
     const adminUsername = (process.env.ADMIN_USERNAME || 'admin').trim()
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123456'
     const adminResults = await p.query('SELECT id FROM users WHERE username = $1 LIMIT 1', [adminUsername])
+    
     if (adminResults.rows.length === 0) {
+      // 仅在 admin 账号不存在时初始化一次
       const passwordHash = await bcrypt.hash(adminPassword, 10)
       await p.query(
         'INSERT INTO users (username, password_hash, is_admin) VALUES ($1, $2, $3) ON CONFLICT (username) DO NOTHING',

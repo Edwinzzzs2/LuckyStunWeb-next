@@ -25,9 +25,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: '目标用户不存在' }, { status: 404 })
   }
   const targetUser = results[0]
-  if (targetUser.username === 'admin') {
-    return NextResponse.json({ message: '不允许修改超级管理员(admin)的密码' }, { status: 403 })
-  }
   const newHash = await bcrypt.hash(newPassword, 10)
   const result = await execute('UPDATE users SET password_hash = $1 WHERE id = $2', [newHash, userId])
   if (result.rowCount === 0) {

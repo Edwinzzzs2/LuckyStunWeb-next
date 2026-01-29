@@ -60,7 +60,8 @@ export default function ConsoleDashboardPage() {
   const [sites, setSites] = useState<SiteRow[]>([])
   const [loading, setLoading] = useState(false)
 
-  async function load() {
+  async function load(options?: { showToast?: boolean }) {
+    const showToast = options?.showToast ?? false
     setLoading(true)
     try {
       const [cats, web] = await Promise.all([
@@ -69,8 +70,9 @@ export default function ConsoleDashboardPage() {
       ])
       setCategories(cats)
       setSites(web)
+      if (showToast) push({ title: '刷新成功', detail: '统计信息已更新', tone: 'success' })
     } catch (e: any) {
-      push({ title: '加载失败', detail: e?.message || '请稍后重试', tone: 'danger' })
+      push({ title: '刷新失败', detail: e?.message || '请稍后重试', tone: 'danger' })
     } finally {
       setLoading(false)
     }
@@ -114,7 +116,7 @@ export default function ConsoleDashboardPage() {
             variant="outline"
             size="icon"
             className="rounded-xl"
-            onClick={load}
+            onClick={() => load({ showToast: true })}
             disabled={loading}
             aria-label={loading ? '刷新中' : '刷新统计'}
             title={loading ? '刷新中' : '刷新统计'}
