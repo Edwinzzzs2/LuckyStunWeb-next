@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent } from 'react'
-import { Layers, Loader2, Menu, Plus, Search, X } from 'lucide-react'
+import { Layers, Loader2, Menu, Plus, Search, X, ChevronLeft, ChevronRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -32,13 +32,13 @@ export default function ConsoleSitesPage() {
   const [selected, setSelected] = useState<Set<number>>(() => new Set())
 
   const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(20)
+  const [pageSize, setPageSize] = useState(10)
 
   const [tableColWidth, setTableColWidth] = useState<Record<TableColKey, number>>(() => ({
     select: 44,
     logo: 56,
-    info: 320,
-    links: 420,
+    info: 240,
+    links: 360,
     updatePort: 80,
     visibility: 80,
     actions: 140,
@@ -115,8 +115,8 @@ export default function ConsoleSitesPage() {
       const min: Record<TableColKey, number> = {
         select: 44,
         logo: 56,
-        info: 220,
-        links: 260,
+        info: 180,
+        links: 200,
         updatePort: 60,
         visibility: 60,
         actions: 120,
@@ -460,7 +460,7 @@ export default function ConsoleSitesPage() {
       </div>
 
       <SitesMobileList
-        items={filtered}
+        items={pageItems}
         categoryName={categoryName}
         loading={loading}
         isRowBusy={isRowBusy}
@@ -469,7 +469,7 @@ export default function ConsoleSitesPage() {
         onDelete={setDeleteTarget}
       />
 
-      <Card className="hidden rounded-none sm:block">
+      <Card className="hidden overflow-hidden rounded-none md:block">
         <SitesTable
           items={pageItems}
           selected={selected}
@@ -490,13 +490,13 @@ export default function ConsoleSitesPage() {
       </Card>
 
       {filtered.length > 0 ? (
-        <div className="hidden items-center justify-between gap-3 sm:flex">
-          <div className="text-sm text-muted-foreground">
-            共 {filtered.length} 条 · 第 {page} / {totalPages} 页
+        <div className="flex items-center justify-between gap-2 px-2">
+          <div className="text-xs text-muted-foreground sm:text-sm">
+            <span className="sm:inline">共 {filtered.length} 条 · 第 {page} / {totalPages} 页</span>
           </div>
           <div className="flex items-center gap-2">
             <select
-              className="h-9 rounded-md border bg-background px-2 text-sm"
+              className="hidden h-9 rounded-md border bg-background px-2 text-xs outline-none sm:block sm:text-sm"
               value={String(pageSize)}
               onChange={(e) => {
                 setPageSize(Number(e.target.value))
@@ -512,22 +512,24 @@ export default function ConsoleSitesPage() {
             </select>
             <Pagination>
               <PaginationContent>
-                <PaginationItem>
+                <PaginationItem className="hidden sm:block">
                   <PaginationButton onClick={() => setPage(1)} disabled={loading || page <= 1}>
                     首页
                   </PaginationButton>
                 </PaginationItem>
                 <PaginationItem>
                   <PaginationButton onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={loading || page <= 1}>
-                    上一页
+                    <span className="hidden sm:inline">上一页</span>
+                    <ChevronLeft className="h-4 w-4 sm:hidden" />
                   </PaginationButton>
                 </PaginationItem>
                 <PaginationItem>
                   <PaginationButton onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={loading || page >= totalPages}>
-                    下一页
+                    <span className="hidden sm:inline">下一页</span>
+                    <ChevronRight className="h-4 w-4 sm:hidden" />
                   </PaginationButton>
                 </PaginationItem>
-                <PaginationItem>
+                <PaginationItem className="hidden sm:block">
                   <PaginationButton onClick={() => setPage(totalPages)} disabled={loading || page >= totalPages}>
                     末页
                   </PaginationButton>

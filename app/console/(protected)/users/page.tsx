@@ -1,13 +1,14 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Menu, Plus, Trash2, KeyRound } from 'lucide-react'
+import { Menu, Plus, Trash2, KeyRound, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Card } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Pagination, PaginationButton, PaginationContent, PaginationItem } from '@/components/ui/pagination'
 import {
   Dialog,
   DialogContent,
@@ -57,6 +58,9 @@ export default function ConsoleUsersPage() {
 
   const [loading, setLoading] = useState(false)
   const [users, setUsers] = useState<UserRow[]>([])
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [total, setTotal] = useState(0)
 
   const [createOpen, setCreateOpen] = useState(false)
   const [createUsername, setCreateUsername] = useState('')
@@ -83,8 +87,9 @@ export default function ConsoleUsersPage() {
   async function load() {
     setLoading(true)
     try {
-      const res = await fetchConsoleJson<{ users: UserRow[] }>('/api/auth/users')
+      const res = await fetchConsoleJson<{ users: UserRow[]; total: number }>(`/api/auth/users?page=${page}&pageSize=${pageSize}`)
       setUsers(res.users)
+      setTotal(res.total || 0)
     } catch (e: any) {
       push({ title: '加载用户失败', detail: e?.message || '请稍后重试', tone: 'danger' })
     } finally {
@@ -94,13 +99,12 @@ export default function ConsoleUsersPage() {
 
   useEffect(() => {
     if (!user?.isAdmin) return
-    if (didLoadRef.current) return
-    didLoadRef.current = true
     load()
-  }, [user?.isAdmin])
+  }, [user?.isAdmin, page, pageSize])
 
   const meId = user?.id
-  const visibleUsers = useMemo(() => users.slice().sort((a, b) => a.id - b.id), [users])
+  const visibleUsers = users
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
 
   const createUserBody = (
     <div className="grid gap-4">
@@ -277,6 +281,57 @@ export default function ConsoleUsersPage() {
           </TableBody>
         </Table>
       </Card>
+
+      {total > 0 ? (
+        <div className="flex items-center justify-between gap-2 px-2">
+          <div className="text-xs text-muted-foreground sm:text-sm">
+            <span className="sm:inline">共 {total} 条 · 第 {page} / {totalPages} 页</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              className="hidden h-9 rounded-md border bg-background px-2 text-xs outline-none sm:block sm:text-sm"
+              value={String(pageSize)}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value))
+                setPage(1)
+              }}
+              disabled={loading}
+              aria-label="每页条数"
+            >
+              <option value="10">10 / 页</option>
+              <option value="20">20 / 页</option>
+              <option value="50">50 / 页</option>
+              <option value="100">100 / 页</option>
+            </select>
+            <Pagination>
+              <PaginationContent>
+                <PaginationItem className="hidden sm:block">
+                  <PaginationButton onClick={() => setPage(1)} disabled={loading || page <= 1}>
+                    首页
+                  </PaginationButton>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationButton onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={loading || page <= 1}>
+                    <span className="hidden sm:inline">上一页</span>
+                    <ChevronLeft className="h-4 w-4 sm:hidden" />
+                  </PaginationButton>
+                </PaginationItem>
+                <PaginationItem>
+                  <PaginationButton onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={loading || page >= totalPages}>
+                    <span className="hidden sm:inline">下一页</span>
+                    <ChevronRight className="h-4 w-4 sm:hidden" />
+                  </PaginationButton>
+                </PaginationItem>
+                <PaginationItem className="hidden sm:block">
+                  <PaginationButton onClick={() => setPage(totalPages)} disabled={loading || page >= totalPages}>
+                    末页
+                  </PaginationButton>
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          </div>
+        </div>
+      ) : null}
 
       {isMobile ? (
         <Sheet open={createOpen} onOpenChange={(open) => {

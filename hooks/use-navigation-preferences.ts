@@ -16,16 +16,6 @@ const defaultPreferences: Preferences = {
   expandedMenuIds: [],
 }
 
-function readJson<T>(key: string): T | null {
-  try {
-    const raw = localStorage.getItem(key)
-    if (!raw) return null
-    return JSON.parse(raw) as T
-  } catch {
-    return null
-  }
-}
-
 export function useNavigationPreferences() {
   const [network, setNetwork] = useState<NetworkType>(defaultPreferences.network)
   const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(defaultPreferences.sidebarCollapsed)
@@ -36,10 +26,6 @@ export function useNavigationPreferences() {
     if (storedNetwork === 'main' || storedNetwork === 'backup' || storedNetwork === 'internal') {
       setNetwork(storedNetwork)
     }
-    setSidebarCollapsed(localStorage.getItem('ui_sidebar') === 'collapsed')
-
-    const storedExpanded = readJson<string[]>('ui_menu_expanded')
-    if (Array.isArray(storedExpanded)) setExpandedMenus(new Set(storedExpanded))
   }, [])
 
   const setNetworkType = useCallback((type: NetworkType) => {
@@ -48,11 +34,7 @@ export function useNavigationPreferences() {
   }, [])
 
   const toggleSidebarCollapsed = useCallback(() => {
-    setSidebarCollapsed((prev) => {
-      const next = !prev
-      localStorage.setItem('ui_sidebar', next ? 'collapsed' : 'expanded')
-      return next
-    })
+    setSidebarCollapsed((prev) => !prev)
   }, [])
 
   const toggleExpandedMenu = useCallback((id: string) => {
@@ -60,7 +42,6 @@ export function useNavigationPreferences() {
       const next = new Set(prev)
       if (next.has(id)) next.delete(id)
       else next.add(id)
-      localStorage.setItem('ui_menu_expanded', JSON.stringify(Array.from(next)))
       return next
     })
   }, [])
@@ -78,4 +59,3 @@ export function useNavigationPreferences() {
     setExpandedMenus,
   }
 }
-

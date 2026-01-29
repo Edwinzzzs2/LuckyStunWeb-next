@@ -26,7 +26,7 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <Card
-          className="group relative border border-border/60 bg-card shadow-sm transition-all duration-200 ease-out [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-black/10 dark:[@media(hover:hover)]:hover:shadow-black/40"
+          className="group relative border border-border/60 bg-card shadow-sm transition-all duration-200 ease-out cursor-pointer [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-black/10 dark:[@media(hover:hover)]:hover:shadow-black/40"
           tabIndex={0}
           onClick={(e) => {
             const btn = (e.target as HTMLElement).closest('button')
@@ -73,6 +73,7 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
                   className="h-6 w-6 object-contain"
                   src={logo}
                   alt={site.title || ''}
+                  title={targetUrl || ''}
                   onError={(e) => {
                     const img = e.currentTarget as HTMLImageElement
                     img.onerror = null
@@ -82,8 +83,8 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
                 />
               </div>
               <div className="min-w-0 flex-1">
-                <div className="min-w-0 truncate text-sm font-medium text-foreground">{site.title}</div>
-                <div className="mt-1 text-xs text-muted-foreground line-clamp-2 leading-relaxed" title={site.desc || ''}>
+                <div className="min-w-0 truncate text-[13px] leading-5 h-5 font-medium text-foreground">{site.title}</div>
+                <div className="mt-1 text-xs leading-4 h-4 text-muted-foreground truncate" title={site.desc || ''}>
                   {site.desc || ''}
                 </div>
               </div>

@@ -44,6 +44,13 @@ export function SitesMobileList({
                     <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
                       <span className="truncate">{categoryName(s.category_id)}</span>
                       <span className="shrink-0">排序: {String(s.sort_order ?? 0)}</span>
+                      <span className="shrink-0 text-muted-foreground/30">|</span>
+                      <div className="flex shrink-0 items-center gap-1">
+                        <span>同步:</span>
+                        <span className={s.update_port_enabled ? "text-primary" : "text-muted-foreground/50"}>
+                          {s.update_port_enabled ? '开启' : '关闭'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -92,18 +99,11 @@ export function SitesMobileList({
                   ))}
               </div>
 
-              <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t pt-3">
-                <div className="flex items-center gap-4">
-                  <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span>导航显隐</span>
-                    <Switch checked={s.is_visible} onCheckedChange={(checked) => onToggleVisible(s, checked)} disabled={isRowBusy(s.id)} />
-                  </label>
-                  {s.update_port_enabled ? (
-                     <div className="text-xs text-muted-foreground">
-                       <span>同步</span>
-                     </div>
-                   ) : null}
-                </div>
+              <div className="mt-4 flex items-center border-t pt-3">
+                <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>导航显隐</span>
+                  <Switch checked={s.is_visible} onCheckedChange={(checked) => onToggleVisible(s, checked)} disabled={isRowBusy(s.id)} />
+                </label>
               </div>
             </div>
           ))}

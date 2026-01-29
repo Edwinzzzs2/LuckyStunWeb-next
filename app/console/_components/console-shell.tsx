@@ -2,9 +2,9 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X, ArrowUp } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -36,6 +36,35 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
+  const [isAutoCollapsed, setIsAutoCollapsed] = useState(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
+  const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const main = scrollRef.current
+    if (!main) return
+
+    const handleScroll = () => {
+      setShowScrollTop(main.scrollTop > 300)
+    }
+
+    main.addEventListener('scroll', handleScroll)
+    return () => main.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  function scrollToTop() {
+    scrollRef.current?.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    const media = window.matchMedia('(min-width: 768px) and (max-width: 1280px)')
+    const onChange = () => setIsAutoCollapsed(media.matches)
+    onChange()
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
+
+  const effectiveCollapsed = collapsed || isAutoCollapsed
 
   const openSidebar = useMemo(() => () => setMobileOpen(true), [])
 
@@ -73,18 +102,18 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
   function Sidebar({ variant }: { variant: 'desktop' | 'mobile' }) {
     const isDesktop = variant === 'desktop'
-    const isCollapsed = isDesktop ? collapsed : false
+    const isCollapsed = isDesktop ? effectiveCollapsed : false
     return (
       <aside
         className={cn(
-          'flex h-full min-h-0 shrink-0 flex-col border-r bg-background',
+          'flex h-full min-h-0 shrink-0 flex-col border-r bg-background transition-all duration-300',
           isDesktop ? (isCollapsed ? 'w-[84px]' : 'w-[280px]') : 'w-[280px]',
           variant === 'desktop' ? 'hidden md:flex' : 'flex'
         )}
       >
-        <div className={cn('flex items-center justify-between py-4', isCollapsed ? 'px-3' : 'px-5')}>
-          <div className={cn('flex items-center gap-2', isCollapsed ? 'justify-center' : '')}>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
+        <div className={cn('flex items-center py-4', isCollapsed ? 'flex-col gap-4 px-0' : 'justify-between px-5')}>
+          <div className={cn('flex items-center gap-2', isCollapsed ? 'flex-col' : '')}>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/20">
               <Home className="h-5 w-5" />
             </div>
             {!isCollapsed ? (
@@ -99,11 +128,18 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => setCollapsed((v) => !v)}
-              aria-label={collapsed ? '展开侧边栏' : '收起侧边栏'}
-              className={cn(isCollapsed ? 'mx-auto' : '')}
+              onClick={() => {
+                if (isAutoCollapsed) {
+                  setIsAutoCollapsed(false)
+                  setCollapsed(false)
+                } else {
+                  setCollapsed((v) => !v)
+                }
+              }}
+              aria-label={isCollapsed ? '展开侧边栏' : '收起侧边栏'}
+              className={cn(isCollapsed ? '' : '')}
             >
-              {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              {isCollapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
             </Button>
           )}
         </div>
@@ -200,29 +236,43 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
         <Sidebar variant="desktop" />
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6">
+          <main ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6">
             <div className="mx-auto w-full max-w-[1400px] min-w-0 py-6 pb-24 md:pb-6 2xl:max-w-[1600px]">{children}</div>
           </main>
         </div>
 
-      <Button
-        variant="outline"
-        size="icon"
-        className="fixed bottom-6 left-6 z-50 rounded-2xl md:hidden"
-        onClick={() => setMobileOpen(true)}
-        aria-label="打开侧边栏"
-      >
-        <Menu className="h-4 w-4" />
-      </Button>
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+        {showScrollTop && (
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-2xl shadow-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+            onClick={scrollToTop}
+            aria-label="回到顶部"
+            title="回到顶部"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-2xl shadow-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          onClick={toggleTheme}
+          aria-label="切换主题"
+        >
+          {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
+      </div>
 
       <Button
         variant="outline"
         size="icon"
-        className="fixed bottom-6 right-6 z-50 rounded-2xl md:hidden"
-        onClick={toggleTheme}
-        aria-label="切换主题"
+        className="fixed bottom-6 left-6 z-50 rounded-2xl md:hidden shadow-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        onClick={() => setMobileOpen(true)}
+        aria-label="打开侧边栏"
       >
-        {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        <Menu className="h-4 w-4" />
       </Button>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
