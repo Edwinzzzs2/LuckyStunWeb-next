@@ -1,15 +1,14 @@
-"use client"
-
 import type { ReactNode } from 'react'
+import type { Metadata } from 'next'
+import { ConsoleProviders } from './providers'
 
-import { ConsoleAuthProvider } from '@/app/console/_components/console-auth'
-import { ConsoleToastProvider } from '@/app/console/_components/console-toast'
-
-export default function ConsoleRootLayout({ children }: { children: ReactNode }) {
-  return (
-    <ConsoleAuthProvider>
-      <ConsoleToastProvider>{children}</ConsoleToastProvider>
-    </ConsoleAuthProvider>
-  )
+export const metadata: Metadata = {
+  title: 'LuckyStun - 管理后台',
+  icons: {
+    icon: '/console-favicon.svg',
+  },
 }
 
+export default function ConsoleRootLayout({ children }: { children: ReactNode }) {
+  return <ConsoleProviders>{children}</ConsoleProviders>
+}

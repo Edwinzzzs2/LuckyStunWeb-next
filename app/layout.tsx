@@ -1,6 +1,14 @@
 import './globals.css'
 import type { ReactNode } from 'react'
+import type { Metadata } from 'next'
 import { ThemeProvider } from '@/components/theme-provider'
+
+export const metadata: Metadata = {
+  title: 'LuckyStun - 个人导航页',
+  icons: {
+    icon: '/favicon.svg',
+  },
+}
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
