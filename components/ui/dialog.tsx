@@ -49,7 +49,7 @@ function DialogHeader({ className, ...props }: React.HTMLAttributes<HTMLDivEleme
 }
 
 function DialogFooter({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('flex flex-row justify-end gap-2', className)} {...props} />
+  return <div className={cn('flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2', className)} {...props} />
 }
 
 const DialogTitle = React.forwardRef<

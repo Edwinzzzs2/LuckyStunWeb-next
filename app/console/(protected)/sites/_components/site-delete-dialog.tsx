@@ -27,10 +27,10 @@ export function SiteDeleteDialog({
         </DialogHeader>
         <div className="text-sm">确认删除站点「{target?.title}」？此操作不可撤销。</div>
         <DialogFooter>
-          <Button variant="outline" className="rounded-xl" onClick={onClose}>
+          <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={onClose}>
             取消
           </Button>
-          <Button variant="destructive" className="rounded-xl" onClick={onConfirm} disabled={deleting}>
+          <Button variant="destructive" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={onConfirm} disabled={deleting}>
             {deleting ? '删除中...' : '确认删除'}
           </Button>
         </DialogFooter>

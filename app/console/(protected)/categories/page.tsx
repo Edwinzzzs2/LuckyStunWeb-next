@@ -138,42 +138,76 @@ export default function ConsoleCategoriesPage() {
   const parentOptions = useMemo(() => flattenForParentOptions(categories, editing?.id), [categories, editing?.id])
 
   const editorBody = (
-    <div className="grid gap-4">
-      <div className="grid gap-2">
-        <label className="text-sm font-medium">分类名称</label>
-        <Input value={form.name} onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))} placeholder="例如：常用推荐" />
+    <div className="grid gap-6 py-2">
+      {/* 基本信息 */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 border-l-4 border-primary/40 pl-3">
+          <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">基本信息</span>
+        </div>
+        <div className="grid gap-4 rounded-2xl border bg-muted/30 p-4">
+          <div className="grid gap-2">
+            <label className="text-xs font-medium text-muted-foreground">分类名称</label>
+            <Input
+              className="rounded-xl border-none bg-background shadow-sm"
+              value={form.name}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+              placeholder="例如：常用推荐"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-xs font-medium text-muted-foreground">唯一标识 (en_name)</label>
+            <Input
+              className="rounded-xl border-none bg-background shadow-sm"
+              value={form.en_name}
+              onChange={(e) => setForm((p) => ({ ...p, en_name: e.target.value }))}
+              placeholder="例如：often"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-xs font-medium text-muted-foreground">父级分类</label>
+            <select
+              className="h-10 w-full rounded-xl border-none bg-background px-3 text-sm shadow-sm transition-colors focus:outline-none focus:ring-1 focus:ring-primary"
+              value={form.parent_id}
+              onChange={(e) => setForm((p) => ({ ...p, parent_id: e.target.value }))}
+            >
+              <option value="0">（无）根分类</option>
+              {parentOptions.map((opt) => (
+                <option key={opt.id} value={String(opt.id)}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
       </div>
-      <div className="grid gap-2">
-        <label className="text-sm font-medium">标识（en_name）</label>
-        <Input value={form.en_name} onChange={(e) => setForm((p) => ({ ...p, en_name: e.target.value }))} placeholder="例如：often" />
-      </div>
-      <div className="grid gap-2">
-        <label className="text-sm font-medium">父级分类</label>
-        <select
-          className="h-10 w-full rounded-md border bg-background px-3 text-sm"
-          value={form.parent_id}
-          onChange={(e) => setForm((p) => ({ ...p, parent_id: e.target.value }))}
-        >
-          <option value="0">（无）根分类</option>
-          {parentOptions.map((opt) => (
-            <option key={opt.id} value={String(opt.id)}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div className="grid gap-2">
-        <label className="text-sm font-medium">图标（支持 Emoji 或 iconfont）</label>
-        <Input value={form.icon} onChange={(e) => setForm((p) => ({ ...p, icon: e.target.value }))} placeholder="例如：⭐ 或 icon-changyongfuwu" />
-      </div>
-      <div className="grid gap-2">
-        <label className="text-sm font-medium">排序（数值越小越靠前）</label>
-        <Input
-          value={form.sort_order}
-          onChange={(e) => setForm((p) => ({ ...p, sort_order: e.target.value }))}
-          type="number"
-          inputMode="numeric"
-        />
+
+      {/* 外观与排序 */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 border-l-4 border-primary/40 pl-3">
+          <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">外观与排序</span>
+        </div>
+        <div className="grid gap-4 rounded-2xl border bg-muted/30 p-4 md:grid-cols-2">
+          <div className="grid gap-2">
+            <label className="text-xs font-medium text-muted-foreground">图标 (Emoji 或 iconfont)</label>
+            <Input
+              className="rounded-xl border-none bg-background shadow-sm"
+              value={form.icon}
+              onChange={(e) => setForm((p) => ({ ...p, icon: e.target.value }))}
+              placeholder="例如：⭐ 或 icon-changyongfuwu"
+            />
+          </div>
+          <div className="grid gap-2">
+            <label className="text-xs font-medium text-muted-foreground">排序权重 (越小越靠前)</label>
+            <Input
+              className="rounded-xl border-none bg-background shadow-sm"
+              value={form.sort_order}
+              onChange={(e) => setForm((p) => ({ ...p, sort_order: e.target.value }))}
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+            />
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -402,14 +436,14 @@ export default function ConsoleCategoriesPage() {
                </SheetHeader>
                <div className="mt-4">{editorBody}</div>
              </div>
-             <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
-               <Button variant="outline" className="rounded-xl" onClick={() => setEditorOpen(false)}>
-                 取消
-               </Button>
-               <Button className="rounded-xl" onClick={submit} disabled={saving}>
-                 {saving ? '保存中...' : editing ? '保存' : '创建'}
-               </Button>
-             </SheetFooter>
+             <SheetFooter className="shrink-0 border-t bg-background p-6 pt-4">
+              <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setEditorOpen(false)}>
+                取消
+              </Button>
+              <Button className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={submit} disabled={saving}>
+                {saving ? '保存中...' : editing ? '保存' : '创建'}
+              </Button>
+            </SheetFooter>
            </SheetContent>
          </Sheet>
        ) : (
@@ -421,6 +455,7 @@ export default function ConsoleCategoriesPage() {
            }}
          >
            <DialogContent
+            className="max-w-2xl"
             onOpenAutoFocus={(e) => e.preventDefault()}
             onCloseAutoFocus={(e) => e.preventDefault()}
           >
@@ -432,13 +467,13 @@ export default function ConsoleCategoriesPage() {
              {editorBody}
 
              <DialogFooter>
-               <Button variant="outline" className="rounded-xl" onClick={() => setEditorOpen(false)}>
-                 取消
-               </Button>
-               <Button className="rounded-xl" onClick={submit} disabled={saving}>
-                 {saving ? '保存中...' : editing ? '保存' : '创建'}
-               </Button>
-             </DialogFooter>
+              <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setEditorOpen(false)}>
+                取消
+              </Button>
+              <Button className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={submit} disabled={saving}>
+                {saving ? '保存中...' : editing ? '保存' : '创建'}
+              </Button>
+            </DialogFooter>
            </DialogContent>
          </Dialog>
        )}
@@ -455,11 +490,11 @@ export default function ConsoleCategoriesPage() {
             确认删除分类「{deleteTarget?.name}」？此操作不可撤销。
           </div>
           <DialogFooter>
-            <Button variant="outline" className="rounded-xl" onClick={() => setDeleteTarget(null)}>
+            <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setDeleteTarget(null)}>
               取消
             </Button>
             <Button
-              className="rounded-xl"
+              className="h-11 w-full rounded-xl sm:h-9 sm:w-auto"
               variant="destructive"
               onClick={confirmDelete}
               disabled={deleting}

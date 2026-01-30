@@ -66,7 +66,7 @@ const SheetHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
 SheetHeader.displayName = 'SheetHeader'
 
 const SheetFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('flex flex-row justify-end gap-2', className)} {...props} />
+  <div className={cn('flex flex-col-reverse gap-3 sm:flex-row sm:justify-end sm:gap-2', className)} {...props} />
 )
 SheetFooter.displayName = 'SheetFooter'
 

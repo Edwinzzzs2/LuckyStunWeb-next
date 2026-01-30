@@ -65,10 +65,10 @@ export function SitesBatchDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" className="rounded-xl" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => onOpenChange(false)}>
             取消
           </Button>
-          <Button className="rounded-xl" onClick={onSubmit} disabled={saving}>
+          <Button className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={onSubmit} disabled={saving}>
             {saving ? '提交中...' : '确认提交'}
           </Button>
         </DialogFooter>

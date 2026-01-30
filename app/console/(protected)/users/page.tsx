@@ -355,11 +355,11 @@ export default function ConsoleUsersPage() {
                </SheetHeader>
                <div className="mt-4">{createUserBody}</div>
              </div>
-             <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
-               <Button variant="outline" className="rounded-xl" onClick={() => setCreateOpen(false)}>
+             <SheetFooter className="shrink-0 border-t bg-background p-6 pt-4">
+               <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setCreateOpen(false)}>
                  取消
                </Button>
-               <Button className="rounded-xl" onClick={createUser} disabled={creating}>
+               <Button className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={createUser} disabled={creating}>
                  {creating ? '创建中...' : '创建'}
                </Button>
              </SheetFooter>
@@ -381,10 +381,10 @@ export default function ConsoleUsersPage() {
             </DialogHeader>
             {createUserBody}
             <DialogFooter>
-              <Button variant="outline" className="rounded-xl" onClick={() => setCreateOpen(false)}>
+              <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setCreateOpen(false)}>
                 取消
               </Button>
-              <Button className="rounded-xl" onClick={createUser} disabled={creating}>
+              <Button className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={createUser} disabled={creating}>
                 {creating ? '创建中...' : '创建'}
               </Button>
             </DialogFooter>
@@ -412,11 +412,11 @@ export default function ConsoleUsersPage() {
                </SheetHeader>
                <div className="mt-4">{resetPasswordBody}</div>
              </div>
-             <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
-               <Button variant="outline" className="rounded-xl" onClick={() => setResetTarget(null)}>
+             <SheetFooter className="shrink-0 border-t bg-background p-6 pt-4">
+               <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setResetTarget(null)}>
                  取消
                </Button>
-               <Button className="rounded-xl" onClick={resetUserPassword} disabled={resetting}>
+               <Button className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={resetUserPassword} disabled={resetting}>
                  {resetting ? '提交中...' : '确认重置'}
                </Button>
              </SheetFooter>
@@ -436,10 +436,10 @@ export default function ConsoleUsersPage() {
             </DialogHeader>
             {resetPasswordBody}
             <DialogFooter>
-              <Button variant="outline" className="rounded-xl" onClick={() => setResetTarget(null)}>
+              <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setResetTarget(null)}>
                 取消
               </Button>
-              <Button className="rounded-xl" onClick={resetUserPassword} disabled={resetting}>
+              <Button className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={resetUserPassword} disabled={resetting}>
                 {resetting ? '提交中...' : '确认重置'}
               </Button>
             </DialogFooter>
@@ -464,11 +464,11 @@ export default function ConsoleUsersPage() {
                </SheetHeader>
                <div className="mt-4">{deleteUserBody}</div>
              </div>
-             <SheetFooter className="border-t bg-background p-6 pt-4 flex flex-row justify-end gap-2 shrink-0">
-               <Button variant="outline" className="rounded-xl" onClick={() => setDeleteTarget(null)}>
+             <SheetFooter className="shrink-0 border-t bg-background p-6 pt-4">
+               <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setDeleteTarget(null)}>
                  取消
                </Button>
-               <Button variant="destructive" className="rounded-xl" onClick={deleteUser} disabled={deleting}>
+               <Button variant="destructive" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={deleteUser} disabled={deleting}>
                  {deleting ? '删除中...' : '确认删除'}
                </Button>
              </SheetFooter>
@@ -485,10 +485,10 @@ export default function ConsoleUsersPage() {
             </DialogHeader>
             {deleteUserBody}
             <DialogFooter>
-              <Button variant="outline" className="rounded-xl" onClick={() => setDeleteTarget(null)}>
+              <Button variant="outline" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={() => setDeleteTarget(null)}>
                 取消
               </Button>
-              <Button variant="destructive" className="rounded-xl" onClick={deleteUser} disabled={deleting}>
+              <Button variant="destructive" className="h-11 w-full rounded-xl sm:h-9 sm:w-auto" onClick={deleteUser} disabled={deleting}>
                 {deleting ? '删除中...' : '确认删除'}
               </Button>
             </DialogFooter>
