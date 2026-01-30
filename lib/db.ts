@@ -90,6 +90,16 @@ async function ensureInitialized() {
         [adminUsername, passwordHash, true]
       )
     }
+
+    // 修复主键序列不同步问题，确保新建时 ID 不冲突
+    const tables = ['users', 'categories', 'sites']
+    for (const table of tables) {
+      await p.query(`
+        SELECT setval(
+          pg_get_serial_sequence($1, 'id'), 
+          COALESCE((SELECT MAX(id) FROM ${table}), 0)
+        )`, [table])
+    }
   })().catch((e) => {
     initPromise = null
     throw e
