@@ -5,7 +5,6 @@ import { Moon, Sun } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import type { Site, Section, MenuGroup } from '@/data/navigation/types'
-import { SITE_ICON_PLACEHOLDER } from '@/data/navigation/mock'
 import { normalizeUrl } from '@/lib/utils'
 import { NavigationShell } from '@/app/components/navigation/navigation-shell'
 import { AppSidebar } from '@/app/components/navigation/app-sidebar'
@@ -181,7 +180,6 @@ export function NavigationPage({ initialData }: { initialData: { sections: Secti
           network={network}
           contentScrollRef={contentScrollRef}
           resolveTargetUrl={resolveTargetUrl}
-          placeholderLogoUrl={SITE_ICON_PLACEHOLDER}
         />
       </NavigationShell>
 

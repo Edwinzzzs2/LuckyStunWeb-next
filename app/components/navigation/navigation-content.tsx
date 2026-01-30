@@ -13,7 +13,6 @@ type NavigationContentProps = {
   network: NetworkType
   contentScrollRef: RefObject<HTMLDivElement | null>
   resolveTargetUrl: (site: Site, network: NetworkType) => string
-  placeholderLogoUrl: string
   sectionDepths?: Record<string, number>
 }
 
@@ -22,7 +21,6 @@ export function NavigationContent({
   network,
   contentScrollRef,
   resolveTargetUrl,
-  placeholderLogoUrl,
   sectionDepths,
 }: NavigationContentProps) {
   const router = useRouter()
@@ -75,7 +73,6 @@ export function NavigationContent({
                     key={`${section.id}-${idx}-${normalizeUrl(site.url)}`}
                     site={site}
                     targetUrl={targetUrl}
-                    placeholderLogoUrl={placeholderLogoUrl}
                   />
                 )
               })}

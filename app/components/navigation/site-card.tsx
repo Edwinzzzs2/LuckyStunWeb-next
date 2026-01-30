@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { ContextMenu, ContextMenuContent, ContextMenuItem, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { SiteLogo } from '@/components/site-logo'
 import { normalizeUrl } from '@/lib/utils'
 import type { Site } from '@/data/navigation/types'
 import { Ellipsis } from 'lucide-react'
@@ -9,18 +10,16 @@ import { Ellipsis } from 'lucide-react'
 type SiteCardProps = {
   site: Site
   targetUrl: string
-  placeholderLogoUrl: string
 }
 
 function openNewTab(url: string) {
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
-export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps) {
+export function SiteCard({ site, targetUrl }: SiteCardProps) {
   const mainUrl = normalizeUrl(site.url)
   const backupUrl = normalizeUrl(site.backup_url)
   const internalUrl = normalizeUrl(site.internal_url)
-  const logo = site.logo || placeholderLogoUrl
 
   return (
     <ContextMenu>
@@ -80,18 +79,7 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
             </DropdownMenu>
             <div className="flex items-start gap-4">
               <div className="h-10 w-10 shrink-0 rounded-xl bg-muted/40 ring-1 ring-border/40 overflow-hidden flex items-center justify-center">
-                <img
-                  className="h-6 w-6 object-contain"
-                  src={logo}
-                  alt={site.title || ''}
-                  title={targetUrl || ''}
-                  onError={(e) => {
-                    const img = e.currentTarget as HTMLImageElement
-                    img.onerror = null
-                    img.src = placeholderLogoUrl
-                  }}
-                  loading="lazy"
-                />
+                <SiteLogo variant="nav" logo={site.logo} title={site.title} />
               </div>
               <div className="min-w-0 flex-1">
                 <div className="min-w-0 truncate text-[13px] leading-5 h-5 font-medium text-foreground">{site.title}</div>
