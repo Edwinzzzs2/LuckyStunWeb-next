@@ -20,7 +20,7 @@ import { useConsoleShell } from '@/app/console/_components/console-shell'
 
 export default function ConsoleSitesPage() {
   const { push } = useConsoleToast()
-  const { openSidebar } = useConsoleShell()
+  const { openSidebar, setRefreshHandler } = useConsoleShell()
   const didLoadRef = useRef(false)
 
   const [loading, setLoading] = useState(false)
@@ -169,6 +169,13 @@ export default function ConsoleSitesPage() {
     didLoadRef.current = true
     loadAll()
   }, [])
+
+  useEffect(() => {
+    setRefreshHandler(async () => {
+      await loadAll()
+    })
+    return () => setRefreshHandler(null)
+  }, [setRefreshHandler])
 
   const categoryNameMap = useMemo(() => new Map(categories.map((c) => [c.id, c.name] as const)), [categories])
   const categoryName = useMemo(

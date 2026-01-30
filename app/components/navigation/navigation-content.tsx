@@ -1,8 +1,10 @@
+import { useRouter } from 'next/navigation'
 import type { RefObject } from 'react'
 
 import type { NetworkType } from '@/hooks/use-navigation-preferences'
 import type { Section, Site } from '@/data/navigation/types'
 
+import { PullToRefresh } from '@/app/components/ui/pull-to-refresh'
 import { SiteCard } from '@/app/components/navigation/site-card'
 import { normalizeUrl } from '@/lib/utils'
 
@@ -23,12 +25,21 @@ export function NavigationContent({
   placeholderLogoUrl,
   sectionDepths,
 }: NavigationContentProps) {
+  const router = useRouter()
+
+  const handleRefresh = async () => {
+    router.refresh()
+    await new Promise((resolve) => setTimeout(resolve, 800))
+  }
+
   return (
-    <main
+    <PullToRefresh
       ref={contentScrollRef}
+      onRefresh={handleRefresh}
+      role="main"
       className="h-full overflow-y-auto custom-scrollbar px-6 sm:px-8 lg:px-10 py-6 lg:py-8 select-none [-webkit-touch-callout:none]"
     >
-      <div className="mx-auto w-full max-w-[1560px] space-y-6">
+      <div className="mx-auto w-full max-w-[1560px] space-y-10">
         {sections.map((section) => (
           <section key={section.id} id={`sec-${section.id}`} className="scroll-mt-20">
             <div className="flex items-center justify-between gap-4">
@@ -81,7 +92,7 @@ export function NavigationContent({
           </div>
         ) : null}
       </div>
-    </main>
+    </PullToRefresh>
   )
 }
 

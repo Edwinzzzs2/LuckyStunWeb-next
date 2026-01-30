@@ -9,6 +9,7 @@ import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
+import { PullToRefresh } from '@/app/components/ui/pull-to-refresh'
 import { useConsoleAuth } from '@/app/console/_components/console-auth'
 import { useConsoleToast } from '@/app/console/_components/console-toast'
 
@@ -19,7 +20,7 @@ type NavItem = {
   adminOnly?: boolean
 }
 
-const ConsoleShellContext = createContext<{ openSidebar: () => void } | null>(null)
+const ConsoleShellContext = createContext<{ openSidebar: () => void; setRefreshHandler: (fn: (() => Promise<void>) | null) => void } | null>(null)
 
 export function useConsoleShell() {
   const ctx = useContext(ConsoleShellContext)
@@ -38,7 +39,9 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
   const [isAutoCollapsed, setIsAutoCollapsed] = useState(false)
   const [showScrollTop, setShowScrollTop] = useState(false)
+  const [pullEnabled, setPullEnabled] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const refreshHandlerRef = useRef<(() => Promise<void>) | null>(null)
 
   useEffect(() => {
     const main = scrollRef.current
@@ -67,6 +70,24 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const effectiveCollapsed = collapsed || isAutoCollapsed
 
   const openSidebar = useMemo(() => () => setMobileOpen(true), [])
+
+  const setRefreshHandler = useMemo(
+    () => (fn: (() => Promise<void>) | null) => {
+      refreshHandlerRef.current = fn
+      setPullEnabled(Boolean(fn))
+    },
+    []
+  )
+
+  const handleRefresh = useMemo(
+    () => async () => {
+      const fn = refreshHandlerRef.current
+      if (fn) await fn()
+      else router.refresh()
+      await new Promise((resolve) => setTimeout(resolve, 800))
+    },
+    [router]
+  )
 
   const navItems = useMemo<NavItem[]>(
     () => [
@@ -231,15 +252,21 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <ConsoleShellContext.Provider value={{ openSidebar }}>
+    <ConsoleShellContext.Provider value={{ openSidebar, setRefreshHandler }}>
       <div className="fixed inset-0 flex flex-col bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
         <div className="flex min-h-0 flex-1 overflow-hidden">
           <Sidebar variant="desktop" />
 
           <div className="flex min-w-0 flex-1 flex-col">
-            <main ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6">
+            <PullToRefresh
+              ref={scrollRef}
+              disabled={!pullEnabled}
+              onRefresh={pullEnabled ? handleRefresh : undefined}
+              role="main"
+              className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6"
+            >
               <div className="mx-auto w-full max-w-[1400px] min-w-0 py-6 pb-24 md:pb-6 2xl:max-w-[1600px]">{children}</div>
-            </main>
+            </PullToRefresh>
           </div>
         </div>
 

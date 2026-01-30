@@ -83,7 +83,7 @@ function defaultFormState(): CategoryFormState {
 
 export default function ConsoleCategoriesPage() {
   const { push } = useConsoleToast()
-  const { openSidebar } = useConsoleShell()
+  const { openSidebar, setRefreshHandler } = useConsoleShell()
   const didLoadRef = useRef(false)
 
   const [loading, setLoading] = useState(false)
@@ -125,6 +125,13 @@ export default function ConsoleCategoriesPage() {
     didLoadRef.current = true
     load()
   }, [])
+
+  useEffect(() => {
+    setRefreshHandler(async () => {
+      await load()
+    })
+    return () => setRefreshHandler(null)
+  }, [setRefreshHandler])
 
   const rows = useMemo(() => flattenVisible(categories, expandedIds), [categories, expandedIds])
 

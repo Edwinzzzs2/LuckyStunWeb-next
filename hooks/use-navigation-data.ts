@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { MenuGroup, Section } from '@/data/navigation/types'
 import { demoMenuGroups, demoSections } from '@/data/navigation/mock'
 
@@ -20,9 +20,9 @@ type NavigationDataState = {
  * 不再在客户端进行二次 Fetch 或复杂的 Source 切换比对，从而彻底杜绝刷新闪烁。
  */
 export function useNavigationData(initialData?: { sections: Section[]; menuGroups: MenuGroup[] }) {
-  const [state] = useState<NavigationDataState>(() => {
+  const [state, setState] = useState<NavigationDataState>(() => {
     const isMockMode = process.env.NEXT_PUBLIC_NAV_DATA_SOURCE === 'mock'
-    
+
     if (initialData) {
       return {
         sections: initialData.sections,
@@ -40,6 +40,17 @@ export function useNavigationData(initialData?: { sections: Section[]; menuGroup
       isLoading: false,
     }
   })
+
+  useEffect(() => {
+    if (!initialData) return
+    const isMockMode = process.env.NEXT_PUBLIC_NAV_DATA_SOURCE === 'mock'
+    setState({
+      sections: initialData.sections,
+      menuGroups: initialData.menuGroups,
+      source: isMockMode ? 'mock' : 'api',
+      isLoading: false,
+    })
+  }, [initialData])
 
   return state
 }
