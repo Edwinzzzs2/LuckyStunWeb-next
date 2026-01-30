@@ -267,16 +267,6 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
         </Button>
       </div>
 
-      <Button
-        variant="outline"
-        size="icon"
-        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] left-6 z-50 rounded-2xl md:hidden shadow-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
-        onClick={() => setMobileOpen(true)}
-        aria-label="打开侧边栏"
-      >
-        <Menu className="h-4 w-4" />
-      </Button>
-
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetContent side="left" className="w-[280px] p-0 overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" aria-label="移动端侧边栏">
             <SheetHeader className="sr-only">

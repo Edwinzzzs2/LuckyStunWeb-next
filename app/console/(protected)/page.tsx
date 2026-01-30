@@ -94,35 +94,37 @@ export default function ConsoleDashboardPage() {
 
   return (
     <div className="grid gap-6">
-      <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
-        <div className="grid grid-cols-[auto_1fr] items-start gap-3">
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-xl sm:hidden"
-            onClick={openSidebar}
-            aria-label="打开侧边栏"
-            title="打开菜单"
-          >
-            <Menu className="h-4 w-4" />
-          </Button>
-          <div>
-            <div className="text-xl font-semibold sm:text-2xl">欢迎，{user?.username}</div>
-            <div className="text-sm text-muted-foreground">快速查看统计与常用入口</div>
+      <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:-mx-6 md:px-6">
+        <div className="grid grid-cols-[1fr_auto] items-start gap-4 sm:items-center">
+          <div className="grid grid-cols-[auto_1fr] items-start gap-3">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-xl sm:hidden"
+              onClick={openSidebar}
+              aria-label="打开侧边栏"
+              title="打开菜单"
+            >
+              <Menu className="h-4 w-4" />
+            </Button>
+            <div>
+              <div className="text-xl font-semibold sm:text-2xl">欢迎，{user?.username}</div>
+              <div className="text-sm text-muted-foreground">快速查看统计与常用入口</div>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center justify-end">
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-xl"
-            onClick={() => load({ showToast: true })}
-            disabled={loading}
-            aria-label={loading ? '刷新中' : '刷新统计'}
-            title={loading ? '刷新中' : '刷新统计'}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center justify-end">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-xl"
+              onClick={() => load({ showToast: true })}
+              disabled={loading}
+              aria-label={loading ? '刷新中' : '刷新统计'}
+              title={loading ? '刷新中' : '刷新统计'}
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -192,17 +194,19 @@ export default function ConsoleDashboardPage() {
             </div>
           </div>
         </Link>
-        <div className="rounded-2xl border bg-card p-5 shadow-sm">
-          <div className="flex items-start gap-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
-              <Users className="h-5 w-5" />
+        {user?.isAdmin ? (
+          <Link href="/console/users" className="rounded-2xl border bg-card p-5 shadow-sm transition hover:bg-accent">
+            <div className="flex items-start gap-4">
+              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
+                <Users className="h-5 w-5" />
+              </div>
+              <div className="min-w-0">
+                <div className="truncate text-base font-semibold">后台管理</div>
+                <div className="mt-1 truncate text-sm text-muted-foreground">用户创建、删除、重置密码</div>
+              </div>
             </div>
-            <div className="min-w-0">
-              <div className="truncate text-base font-semibold">后台管理</div>
-              <div className="mt-1 truncate text-sm text-muted-foreground">管理员可见：用户创建、删除、重置密码</div>
-            </div>
-          </div>
-        </div>
+          </Link>
+        ) : null}
       </div>
     </div>
   )

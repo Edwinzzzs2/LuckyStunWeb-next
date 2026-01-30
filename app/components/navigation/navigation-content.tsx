@@ -28,7 +28,7 @@ export function NavigationContent({
       ref={contentScrollRef}
       className="h-full overflow-y-auto custom-scrollbar px-6 sm:px-8 lg:px-10 py-6 lg:py-8 select-none [-webkit-touch-callout:none]"
     >
-      <div className="mx-auto w-full max-w-[1560px] space-y-4">
+      <div className="mx-auto w-full max-w-[1560px] space-y-6">
         {sections.map((section) => (
           <section key={section.id} id={`sec-${section.id}`} className="scroll-mt-20">
             <div className="flex items-center justify-between gap-4">

@@ -1,7 +1,9 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
+import { Moon, Sun } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
+import { Button } from '@/components/ui/button'
 import type { Site, Section, MenuGroup } from '@/data/navigation/types'
 import { SITE_ICON_PLACEHOLDER } from '@/data/navigation/mock'
 import { normalizeUrl } from '@/lib/utils'
@@ -168,8 +170,6 @@ export function NavigationPage({ initialData }: { initialData: { sections: Secti
             searchInputRef={searchInputRef}
             network={network}
             onNetworkChange={(type) => setNetworkType(type)}
-            resolvedTheme={resolvedTheme}
-            onToggleTheme={toggleTheme}
             onToggleSidebar={toggleSidebarCollapsed}
             onOpenMobileSidebar={() => setMobileSidebarOpen(true)}
             sidebarCollapsed={sidebarCollapsed}
@@ -184,6 +184,19 @@ export function NavigationPage({ initialData }: { initialData: { sections: Secti
           placeholderLogoUrl={SITE_ICON_PLACEHOLDER}
         />
       </NavigationShell>
+
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] right-6 z-50">
+        <Button
+          variant="outline"
+          size="icon"
+          className="rounded-2xl shadow-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+          onClick={toggleTheme}
+          aria-label="切换主题"
+          title="切换主题"
+        >
+          {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </Button>
+      </div>
 
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
         <SheetContent side="left" className="w-[280px] p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" aria-label="移动端侧边栏">
