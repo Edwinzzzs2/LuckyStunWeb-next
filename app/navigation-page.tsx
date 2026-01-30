@@ -186,7 +186,7 @@ export function NavigationPage({ initialData }: { initialData: { sections: Secti
       </NavigationShell>
 
       <Sheet open={mobileSidebarOpen} onOpenChange={setMobileSidebarOpen}>
-        <SheetContent side="left" className="w-[280px] p-0" aria-label="移动端侧边栏">
+        <SheetContent side="left" className="w-[280px] p-0 pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" aria-label="移动端侧边栏">
           <SheetHeader className="sr-only">
             <SheetTitle>菜单</SheetTitle>
           </SheetHeader>

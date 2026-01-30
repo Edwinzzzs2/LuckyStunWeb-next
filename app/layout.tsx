@@ -1,6 +1,6 @@
 import './globals.css'
 import type { ReactNode } from 'react'
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { PwaRegister } from '@/app/components/pwa/pwa-register'
 
@@ -11,10 +11,19 @@ export const metadata: Metadata = {
     apple: '/pwa-192.svg',
   },
   manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'LuckyStun - 个人导航页',
+  },
 }
 
-export const viewport = {
-  themeColor: '#0b0f19',
+export const viewport: Viewport = {
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#fafafa' },
+    { media: '(prefers-color-scheme: dark)', color: '#0b0f19' },
+  ],
+  viewportFit: 'cover',
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

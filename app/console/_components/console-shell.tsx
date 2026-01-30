@@ -232,16 +232,18 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
 
   return (
     <ConsoleShellContext.Provider value={{ openSidebar }}>
-      <div className="fixed inset-0 flex overflow-hidden bg-background">
-        <Sidebar variant="desktop" />
+      <div className="fixed inset-0 flex flex-col bg-background pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
+        <div className="flex min-h-0 flex-1 overflow-hidden">
+          <Sidebar variant="desktop" />
 
-        <div className="flex min-w-0 flex-1 flex-col">
-          <main ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6">
-            <div className="mx-auto w-full max-w-[1400px] min-w-0 py-6 pb-24 md:pb-6 2xl:max-w-[1600px]">{children}</div>
-          </main>
+          <div className="flex min-w-0 flex-1 flex-col">
+            <main ref={scrollRef} className="flex-1 overflow-y-auto overflow-x-hidden px-4 md:px-6">
+              <div className="mx-auto w-full max-w-[1400px] min-w-0 py-6 pb-24 md:pb-6 2xl:max-w-[1600px]">{children}</div>
+            </main>
+          </div>
         </div>
 
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+      <div className="fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] right-6 z-50 flex flex-col gap-3">
         {showScrollTop && (
           <Button
             variant="outline"
@@ -268,7 +270,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       <Button
         variant="outline"
         size="icon"
-        className="fixed bottom-6 left-6 z-50 rounded-2xl md:hidden shadow-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
+        className="fixed bottom-[calc(env(safe-area-inset-bottom)+1.5rem)] left-6 z-50 rounded-2xl md:hidden shadow-lg bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60"
         onClick={() => setMobileOpen(true)}
         aria-label="打开侧边栏"
       >
@@ -276,7 +278,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       </Button>
 
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-          <SheetContent side="left" className="w-[280px] p-0 overflow-y-auto" aria-label="移动端侧边栏">
+          <SheetContent side="left" className="w-[280px] p-0 overflow-y-auto pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]" aria-label="移动端侧边栏">
             <SheetHeader className="sr-only">
               <SheetTitle>移动端侧边栏</SheetTitle>
             </SheetHeader>
