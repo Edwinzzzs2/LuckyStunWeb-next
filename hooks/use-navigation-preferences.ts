@@ -11,7 +11,7 @@ type Preferences = {
 }
 
 const defaultPreferences: Preferences = {
-  network: 'internal',
+  network: 'main',
   sidebarCollapsed: false,
   expandedMenuIds: [],
 }

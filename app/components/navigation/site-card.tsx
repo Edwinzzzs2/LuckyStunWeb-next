@@ -26,7 +26,7 @@ export function SiteCard({ site, targetUrl, placeholderLogoUrl }: SiteCardProps)
     <ContextMenu>
       <ContextMenuTrigger asChild>
         <Card
-          className="group relative border border-border/60 bg-card shadow-sm transition-all duration-200 ease-out cursor-pointer focus:outline-none [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-black/10 dark:[@media(hover:hover)]:hover:shadow-black/40"
+          className="group relative border border-border/60 bg-card shadow-sm transition-all duration-200 ease-out cursor-pointer focus:outline-none select-none [-webkit-touch-callout:none] [@media(hover:hover)]:hover:-translate-y-0.5 [@media(hover:hover)]:hover:shadow-lg [@media(hover:hover)]:hover:shadow-black/10 dark:[@media(hover:hover)]:hover:shadow-black/40"
           tabIndex={0}
           onClick={(e) => {
             // 如果事件已经被处理（例如由子元素阻止冒泡），则不再执行
