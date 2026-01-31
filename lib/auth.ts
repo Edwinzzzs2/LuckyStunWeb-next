@@ -23,7 +23,6 @@ export function verifyToken(token: string) {
 
 function getCookieToken(req: Request) {
   const cookieHeader = req.headers.get('cookie') || ''
-  // console.log('[Auth] Cookie header:', cookieHeader)
   const parts = cookieHeader.split(';')
   for (const part of parts) {
     const [key, ...rest] = part.trim().split('=')

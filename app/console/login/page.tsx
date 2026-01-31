@@ -87,6 +87,7 @@ function ConsoleLoginInner() {
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>分类管理：树形结构，父子级约束</span></div>
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>网站管理：增删改、显隐、批量操作、搜索</span></div>
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>用户管理：管理员可见，重置密码、删除</span></div>
+                    <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>webhook日志查看：</span></div>
                   </div>
                 </div>
               </div>
