@@ -37,7 +37,7 @@ function updateUrlPort(url: string | null, newPort: number | null) {
 
 export async function POST(req: NextRequest) {
   logger.info('[Update Ports] Request received')
-  const webhookToken = process.env.UPDATE_PORTS_WEBHOOK_TOKEN
+  const webhookToken = process.env.WEBHOOK_SECRET
   const bearer = (req.headers.get('authorization') || '').trim()
   const bearerToken = bearer.toLowerCase().startsWith('bearer ') ? bearer.slice(7).trim() : ''
   
