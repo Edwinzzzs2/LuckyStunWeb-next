@@ -36,33 +36,60 @@ function updateUrlPort(url: string | null, newPort: number | null) {
 }
 
 export async function POST(req: NextRequest) {
-  logger.info('[更新端口] 收到请求')
+  const ip = (() => {
+    const forwarded = req.headers.get('x-forwarded-for') || ''
+    const first = forwarded.split(',')[0]?.trim()
+    return first || req.headers.get('x-real-ip') || (req as any).ip || ''
+  })()
+
+  const log = async (
+    level: 'info' | 'warn' | 'error',
+    message: string,
+    meta?: Record<string, unknown>,
+    status?: number
+  ) => {
+    const prefix = '[更新端口]'
+    const content = meta ? `${message} ${JSON.stringify(meta)}` : message
+    if (level === 'info') logger.info(`${prefix} ${content}`)
+    if (level === 'warn') logger.warn(`${prefix} ${content}`)
+    if (level === 'error') logger.error(`${prefix} ${content}`)
+    try {
+      await execute(
+        'INSERT INTO webhook_logs (source, level, message, meta, status, ip) VALUES ($1, $2, $3, $4, $5, $6)',
+        ['update-ports', level, message, meta ? JSON.stringify(meta) : null, status ?? null, ip || null]
+      )
+    } catch (e: any) {
+      logger.error('[更新端口] 日志写入失败:', e)
+    }
+  }
+
+  await log('info', '收到请求')
   const webhookToken = process.env.WEBHOOK_SECRET
   const bearer = (req.headers.get('authorization') || '').trim()
   const bearerToken = bearer.toLowerCase().startsWith('bearer ') ? bearer.slice(7).trim() : ''
   
   if (!webhookToken) {
-    logger.error('[更新端口] 环境变量未配置 Webhook Token')
+    await log('error', '环境变量未配置 Webhook Token', undefined, 500)
     return NextResponse.json({ message: '服务端未配置 Webhook Token' }, { status: 500 })
   }
   
   if (bearerToken !== webhookToken) {
-    logger.warn('[更新端口] 未授权访问（Token 无效）')
+    await log('warn', '未授权访问（Token 无效）', undefined, 401)
     return NextResponse.json({ message: '未授权' }, { status: 401 })
   }
 
   const { data, error } = await readJson<Body>(req)
   if (error) {
-    logger.error('[更新端口] JSON 解析失败:', error)
+    await log('error', 'JSON 解析失败', { error: (error as any)?.message || 'unknown' }, 400)
     return error
   }
-  
-  logger.info('[更新端口] 处理请求参数:', JSON.stringify(data))
+
+  await log('info', '处理请求参数', { data })
 
   const rawPort = (data as any)?.port
   const port = rawPort === null ? null : rawPort === undefined ? undefined : Number(rawPort)
   if (port !== null && (port === undefined || !Number.isInteger(port) || port < 0 || port > 65535)) {
-    logger.warn(`[更新端口] 无效端口: ${rawPort}`)
+    await log('warn', '无效端口', { rawPort }, 400)
     return NextResponse.json({ code: 1, message: '端口号应为 0-65535 之间的整数或 null（去除端口号）' }, { status: 400 })
   }
 
@@ -73,13 +100,13 @@ export async function POST(req: NextRequest) {
       ? [rawDomains.trim()].filter(Boolean)
       : []
   if (domains.length === 0) {
-    logger.warn('[更新端口] 未提供域名')
+    await log('warn', '未提供域名', undefined, 400)
     return NextResponse.json({ code: 1, message: '域名数组为必填项' }, { status: 400 })
   }
   const domainPattern = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(\.[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/
   for (const domain of domains) {
     if (!domainPattern.test(domain)) {
-      logger.warn(`[更新端口] 域名格式无效: ${domain}`)
+      await log('warn', '域名格式无效', { domain }, 400)
       return NextResponse.json({ code: 1, message: `无效的域名格式: ${domain}` }, { status: 400 })
     }
   }
@@ -87,7 +114,7 @@ export async function POST(req: NextRequest) {
   if (ids.length > 0) {
     for (const id of ids) {
       if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
-        logger.warn(`[更新端口] 站点ID无效: ${id}`)
+        await log('warn', '站点ID无效', { id }, 400)
         return NextResponse.json({ code: 1, message: `无效的站点ID: ${id}` }, { status: 400 })
       }
     }
@@ -96,7 +123,7 @@ export async function POST(req: NextRequest) {
   try {
     const sitesToUpdate = await query('SELECT id, url, backup_url, internal_url, logo, category_id FROM sites WHERE update_port_enabled = TRUE')
     if (sitesToUpdate.length === 0) {
-      logger.info('[更新端口] 没有开启自动更新端口的站点')
+      await log('info', '没有开启自动更新端口的站点', undefined, 404)
       return NextResponse.json({ code: 1, message: '没有找到符合条件的网站' }, { status: 404 })
     }
     const filtered = sitesToUpdate.filter((site) => {
@@ -110,7 +137,7 @@ export async function POST(req: NextRequest) {
       return idMatched && domainMatched
     })
     if (filtered.length === 0) {
-      logger.info('[更新端口] 未找到匹配站点')
+      await log('info', '未找到匹配站点', { domains, ids }, 200)
       return NextResponse.json({ code: 0, message: '没有找到匹配的站点需要更新', matched_count: 0, needs_update_count: 0, updated_count: 0, failed_count: 0 })
     }
     let updatedCount = 0
@@ -167,7 +194,7 @@ export async function POST(req: NextRequest) {
           updatedCount += 1
           categoriesUpdated.add(site.category_id)
         } catch (e: any) {
-          logger.error(`[更新端口] 更新站点失败 ${site.id}:`, e)
+          await log('error', '更新站点失败', { id: site.id, error: e?.code || e?.message || 'unknown' }, 500)
           failedUpdates.push({ id: site.id, error: e?.code || e?.message || 'unknown' })
         }
       }
@@ -177,9 +204,18 @@ export async function POST(req: NextRequest) {
     if (ids.length > 0) matchCriteria.push(`ID [${ids.join(', ')}]`)
     const portMessage = port === null ? '去除端口号' : `端口号为 ${port}`
     
-    logger.info(`[更新端口] 汇总：匹配 ${filtered.length}，需更新 ${needsUpdateCount}，成功 ${updatedCount}，失败 ${failedUpdates.length}`)
+    await log('info', '更新汇总', {
+      matched: filtered.length,
+      needs_update: needsUpdateCount,
+      updated: updatedCount,
+      failed: failedUpdates.length,
+      domains,
+      ids,
+      port,
+    })
     
     if (failedUpdates.length > 0) {
+      await log('error', '更新部分失败', { failed: failedUpdates.slice(0, 20) }, 500)
       return NextResponse.json(
         {
           code: 1,
@@ -193,6 +229,7 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       )
     }
+    await log('info', '更新成功', { updated: updatedCount, matched: filtered.length }, 200)
     return NextResponse.json({
       code: 0,
       message: `通过 ${matchCriteria.join(' 和 ')} 匹配到 ${filtered.length} 个网站，成功为其中 ${updatedCount} 个网站${portMessage}`,
@@ -203,7 +240,7 @@ export async function POST(req: NextRequest) {
       updated_categories: Array.from(categoriesUpdated),
     })
   } catch (e: any) {
-    logger.error('[更新端口] 数据库错误:', e)
+    await log('error', '数据库错误', { error: e?.message || 'unknown' }, 500)
     return NextResponse.json({ message: '更新端口失败' }, { status: 500 })
   }
 }

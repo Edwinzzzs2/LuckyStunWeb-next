@@ -64,6 +64,18 @@ async function ensureInitialized() {
         '  update_port_enabled BOOLEAN NOT NULL DEFAULT TRUE\n' +
         ')'
     )
+    await p.query(
+      'CREATE TABLE IF NOT EXISTS webhook_logs (\n' +
+        '  id BIGSERIAL PRIMARY KEY,\n' +
+        '  source VARCHAR(64) NOT NULL,\n' +
+        '  level VARCHAR(16) NOT NULL,\n' +
+        '  message TEXT NOT NULL,\n' +
+        '  meta JSONB,\n' +
+        '  status INT,\n' +
+        '  ip TEXT,\n' +
+        '  created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n' +
+        ')'
+    )
     await p.query('ALTER TABLE categories ADD COLUMN IF NOT EXISTS parent_id BIGINT')
     await p.query('ALTER TABLE categories ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0')
     await p.query('ALTER TABLE categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now()')
@@ -77,6 +89,8 @@ async function ensureInitialized() {
     await p.query('ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now()')
     await p.query('CREATE INDEX IF NOT EXISTS idx_categories_parent_id ON categories(parent_id)')
     await p.query('CREATE INDEX IF NOT EXISTS idx_sites_category_id ON sites(category_id)')
+    await p.query('CREATE INDEX IF NOT EXISTS idx_webhook_logs_source ON webhook_logs(source)')
+    await p.query('CREATE INDEX IF NOT EXISTS idx_webhook_logs_created_at ON webhook_logs(created_at DESC)')
 
     const adminUsername = (process.env.ADMIN_USERNAME || 'admin').trim()
     const adminPassword = process.env.ADMIN_PASSWORD || 'admin123456'
@@ -92,13 +106,16 @@ async function ensureInitialized() {
     }
 
     // 修复主键序列不同步问题，确保新建时 ID 不冲突
-    const tables = ['users', 'categories', 'sites']
+    const tables = ['users', 'categories', 'sites', 'webhook_logs']
     for (const table of tables) {
-      await p.query(`
-        SELECT setval(
-          pg_get_serial_sequence($1, 'id'), 
-          COALESCE((SELECT MAX(id) FROM ${table}), 0)
-        )`, [table])
+      await p.query(
+        `SELECT setval(
+          pg_get_serial_sequence($1, 'id'),
+          COALESCE((SELECT MAX(id) FROM ${table}), 1),
+          (SELECT MAX(id) FROM ${table}) IS NOT NULL
+        )`,
+        [table]
+      )
     }
   })().catch((e) => {
     initPromise = null

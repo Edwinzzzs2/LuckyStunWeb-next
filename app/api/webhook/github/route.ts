@@ -1,19 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
+import { execute } from '@/lib/db'
+import { logger } from '@/lib/logger'
 
 /**
  * GitHub Webhook 接收器
  * 路径: /api/webhook/github
  */
 export async function POST(req: NextRequest) {
-  const log = (
+  const ip = (() => {
+    const forwarded = req.headers.get('x-forwarded-for') || ''
+    const first = forwarded.split(',')[0]?.trim()
+    return first || req.headers.get('x-real-ip') || (req as any).ip || ''
+  })()
+
+  const log = async (
     level: 'info' | 'warn' | 'error',
     message: string,
-    meta?: Record<string, unknown>
+    meta?: Record<string, unknown>,
+    status?: number
   ) => {
     const prefix = '[GitHub Webhook]'
     const content = meta ? `${message} ${JSON.stringify(meta)}` : message
-    console[level](`${prefix} ${content}`)
+    if (level === 'info') logger.info(`${prefix} ${content}`)
+    if (level === 'warn') logger.warn(`${prefix} ${content}`)
+    if (level === 'error') logger.error(`${prefix} ${content}`)
+    try {
+      await execute(
+        'INSERT INTO webhook_logs (source, level, message, meta, status, ip) VALUES ($1, $2, $3, $4, $5, $6)',
+        ['github', level, message, meta ? JSON.stringify(meta) : null, status ?? null, ip || null]
+      )
+    } catch (e: any) {
+      logger.error('[GitHub Webhook] Log insert failed:', e)
+    }
   }
 
   try {
@@ -22,7 +41,7 @@ export async function POST(req: NextRequest) {
     const event = req.headers.get('x-github-event') || 'unknown'
     const delivery = req.headers.get('x-github-delivery') || 'unknown'
 
-    log('info', '收到事件', { event, delivery })
+    await log('info', '收到事件', { event, delivery })
     
     const secret = process.env.WEBHOOK_SECRET
     if (secret) {
@@ -33,11 +52,11 @@ export async function POST(req: NextRequest) {
         const digestBuffer = Buffer.from(digest)
 
         if (signatureBuffer.length !== digestBuffer.length || !crypto.timingSafeEqual(signatureBuffer, digestBuffer)) {
-          log('error', '签名校验失败')
+          await log('error', '签名校验失败', undefined, 401)
           return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
         }
       } else {
-        log('error', '缺少签名头')
+        await log('error', '缺少签名头', undefined, 401)
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
     }
@@ -47,7 +66,7 @@ export async function POST(req: NextRequest) {
     
     // 2. 自动更新逻辑 (仅限 main 分支 push)
     if (event === 'push' && ref === 'refs/heads/main') {
-      log('info', '检测到 main 分支推送，开始触发 1Panel 流程')
+      await log('info', '检测到 main 分支推送，开始触发 1Panel 流程')
       
       const apiKey = process.env.PANEL_API_KEY
       const runtimeId = process.env.PANEL_RUNTIME_ID
@@ -61,7 +80,7 @@ export async function POST(req: NextRequest) {
       const delayMs = Number(process.env.PANEL_DELAY_MS || '30000')
 
       if (!apiKey || !runtimeId || !apiUrl) {
-        log('error', '1Panel 配置缺失，请检查环境变量')
+        await log('error', '1Panel 配置缺失，请检查环境变量', undefined, 500)
         return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
       }
 
@@ -74,7 +93,7 @@ export async function POST(req: NextRequest) {
       const triggerOperates = async () => {
         if (cronjobId && cronjobUrl) {
           try {
-            log('info', '触发 1Panel 定时任务', { cronjobId })
+            await log('info', '触发 1Panel 定时任务', { cronjobId })
             const res = await fetch(cronjobUrl, {
               method: 'POST',
               headers: {
@@ -85,20 +104,20 @@ export async function POST(req: NextRequest) {
               body: JSON.stringify({ id: Number(cronjobId) }),
             })
             const bodyText = await res.text()
-            log('info', '定时任务返回', { bodyText })
+            await log('info', '定时任务返回', { bodyText })
           } catch (e: any) {
-            log('error', '触发定时任务失败', { message: e.message })
+            await log('error', '触发定时任务失败', { message: e.message })
           }
 
           if (Number.isFinite(delayMs) && delayMs > 0) {
-            log('info', '等待延时后继续', { delayMs })
+            await log('info', '等待延时后继续', { delayMs })
             await new Promise((resolve) => setTimeout(resolve, delayMs))
           }
         }
 
         for (const op of operates) {
           try {
-            log('info', '触发 1Panel 操作', { op })
+            await log('info', '触发 1Panel 操作', { op })
             const res = await fetch(apiUrl, {
               method: 'POST',
               headers: {
@@ -109,9 +128,9 @@ export async function POST(req: NextRequest) {
               body: JSON.stringify({ operate: op, ID: Number(runtimeId) }),
             })
             const bodyText = await res.text()
-            log('info', '操作返回', { op, bodyText })
+            await log('info', '操作返回', { op, bodyText })
           } catch (e: any) {
-            log('error', '操作失败', { op, message: e.message })
+            await log('error', '操作失败', { op, message: e.message })
           }
         }
       }
@@ -119,9 +138,10 @@ export async function POST(req: NextRequest) {
       void triggerOperates()
     }
 
+    await log('info', '处理完成', { event, delivery }, 200)
     return NextResponse.json({ message: 'Process triggered', event, delivery })
   } catch (err: any) {
-    log('error', '处理失败', { message: err.message })
+    await log('error', '处理失败', { message: err.message }, 500)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
