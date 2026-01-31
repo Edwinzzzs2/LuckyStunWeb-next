@@ -249,9 +249,9 @@ export default function ConsoleWebhookLogsPage() {
             <TableHeader>
               <TableRow className="bg-muted/40">
                 <TableHead className="w-[22%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">时间</TableHead>
-                <TableHead className="w-[12%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">来源</TableHead>
+                <TableHead className="w-[16%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground whitespace-nowrap">来源</TableHead>
                 <TableHead className="w-[8%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">级别</TableHead>
-                <TableHead className="w-[28%] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">消息</TableHead>
+                <TableHead className="w-[24%] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">消息</TableHead>
                 <TableHead className="w-[10%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">状态</TableHead>
                 <TableHead className="w-[10%] text-center text-xs font-semibold uppercase tracking-wide text-muted-foreground">IP</TableHead>
                 <TableHead className="w-[10%] text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">元数据</TableHead>
@@ -276,8 +276,8 @@ export default function ConsoleWebhookLogsPage() {
                         : 'text-emerald-500'
                   return (
                     <TableRow key={log.id}>
-                      <TableCell className="w-[22%] text-center text-xs text-muted-foreground">{formatDate(log.created_at)}</TableCell>
-                      <TableCell className="w-[12%] text-center text-sm">{sourceLabel[log.source] || log.source}</TableCell>
+                      <TableCell className="w-[22%] text-center text-xs text-muted-foreground whitespace-nowrap">{formatDate(log.created_at)}</TableCell>
+                      <TableCell className="w-[16%] text-center text-sm whitespace-nowrap">{sourceLabel[log.source] || log.source}</TableCell>
                       <TableCell className={`text-center text-sm font-semibold ${levelClass}`}>{log.level}</TableCell>
                       <TableCell className="min-w-0 text-left">
                         <div className="min-w-0">

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { createWebhookLogger } from '@/lib/logger'
 
 type Body = { port: number | null; domains?: string[]; ids?: number[] }
 
@@ -42,26 +42,7 @@ export async function POST(req: NextRequest) {
     return first || req.headers.get('x-real-ip') || (req as any).ip || ''
   })()
 
-  const log = async (
-    level: 'info' | 'warn' | 'error',
-    message: string,
-    meta?: Record<string, unknown>,
-    status?: number
-  ) => {
-    const prefix = '[更新端口]'
-    const content = meta ? `${message} ${JSON.stringify(meta)}` : message
-    if (level === 'info') logger.info(`${prefix} ${content}`)
-    if (level === 'warn') logger.warn(`${prefix} ${content}`)
-    if (level === 'error') logger.error(`${prefix} ${content}`)
-    try {
-      await execute(
-        'INSERT INTO webhook_logs (source, level, message, meta, status, ip) VALUES ($1, $2, $3, $4, $5, $6)',
-        ['update-ports', level, message, meta ? JSON.stringify(meta) : null, status ?? null, ip || null]
-      )
-    } catch (e: any) {
-      logger.error('[更新端口] 日志写入失败:', e)
-    }
-  }
+  const log = createWebhookLogger({ source: 'update-ports', prefix: '[更新端口]', ip })
 
   await log('info', '收到请求')
   const webhookToken = process.env.WEBHOOK_SECRET

@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
-import { execute } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { createWebhookLogger } from '@/lib/logger'
 
 /**
  * GitHub Webhook 接收器
@@ -14,26 +13,7 @@ export async function POST(req: NextRequest) {
     return first || req.headers.get('x-real-ip') || (req as any).ip || ''
   })()
 
-  const log = async (
-    level: 'info' | 'warn' | 'error',
-    message: string,
-    meta?: Record<string, unknown>,
-    status?: number
-  ) => {
-    const prefix = '[GitHub Webhook]'
-    const content = meta ? `${message} ${JSON.stringify(meta)}` : message
-    if (level === 'info') logger.info(`${prefix} ${content}`)
-    if (level === 'warn') logger.warn(`${prefix} ${content}`)
-    if (level === 'error') logger.error(`${prefix} ${content}`)
-    try {
-      await execute(
-        'INSERT INTO webhook_logs (source, level, message, meta, status, ip) VALUES ($1, $2, $3, $4, $5, $6)',
-        ['github', level, message, meta ? JSON.stringify(meta) : null, status ?? null, ip || null]
-      )
-    } catch (e: any) {
-      logger.error('[GitHub Webhook] Log insert failed:', e)
-    }
-  }
+  const log = createWebhookLogger({ source: 'github', prefix: '[GitHub Webhook]', ip })
 
   try {
     const payload = await req.text()
