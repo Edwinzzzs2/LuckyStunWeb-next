@@ -12,10 +12,18 @@ export async function POST(req: NextRequest) {
     const event = req.headers.get('x-github-event') || 'unknown'
     const delivery = req.headers.get('x-github-delivery') || 'unknown'
 
-    // 打印基础日志
-    console.log(`[GitHub Webhook] Received event: ${event}`)
+    const log = (
+      level: 'info' | 'warn' | 'error',
+      message: string,
+      meta?: Record<string, unknown>
+    ) => {
+      const prefix = '[GitHub Webhook]'
+      const content = meta ? `${message} ${JSON.stringify(meta)}` : message
+      console[level](`${prefix} ${content}`)
+    }
+
+    log('info', '收到事件', { event, delivery })
     
-    // 1. 校验 GitHub 签名
     const secret = process.env.WEBHOOK_SECRET
     if (secret) {
       if (signature) {
@@ -25,10 +33,11 @@ export async function POST(req: NextRequest) {
         const digestBuffer = Buffer.from(digest)
 
         if (signatureBuffer.length !== digestBuffer.length || !crypto.timingSafeEqual(signatureBuffer, digestBuffer)) {
-          console.error('[GitHub Webhook] Signature verification failed!')
+          log('error', '签名校验失败')
           return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
         }
       } else {
+        log('error', '缺少签名头')
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
       }
     }
@@ -38,7 +47,7 @@ export async function POST(req: NextRequest) {
     
     // 2. 自动更新逻辑 (仅限 main 分支 push)
     if (event === 'push' && ref === 'refs/heads/main') {
-      console.log('[GitHub Webhook] Main branch push detected. Triggering 1Panel update...')
+      log('info', '检测到 main 分支推送，开始触发 1Panel 流程')
       
       const apiKey = process.env.PANEL_API_KEY
       const runtimeId = process.env.PANEL_RUNTIME_ID
@@ -52,7 +61,7 @@ export async function POST(req: NextRequest) {
       const delayMs = Number(process.env.PANEL_DELAY_MS || '30000')
 
       if (!apiKey || !runtimeId || !apiUrl) {
-        console.error('[GitHub Webhook] 1Panel config missing in environment variables')
+        log('error', '1Panel 配置缺失，请检查环境变量')
         return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
       }
 
@@ -65,7 +74,7 @@ export async function POST(req: NextRequest) {
       const triggerOperates = async () => {
         if (cronjobId && cronjobUrl) {
           try {
-            console.log('[GitHub Webhook] Triggering 1Panel cronjob...')
+            log('info', '触发 1Panel 定时任务', { cronjobId })
             const res = await fetch(cronjobUrl, {
               method: 'POST',
               headers: {
@@ -76,19 +85,20 @@ export async function POST(req: NextRequest) {
               body: JSON.stringify({ id: Number(cronjobId) }),
             })
             const bodyText = await res.text()
-            console.log(`[GitHub Webhook] 1Panel cronjob response: ${bodyText}`)
+            log('info', '定时任务返回', { bodyText })
           } catch (e: any) {
-            console.error('[GitHub Webhook] 1Panel cronjob failed:', e.message)
+            log('error', '触发定时任务失败', { message: e.message })
           }
 
           if (Number.isFinite(delayMs) && delayMs > 0) {
+            log('info', '等待延时后继续', { delayMs })
             await new Promise((resolve) => setTimeout(resolve, delayMs))
           }
         }
 
         for (const op of operates) {
           try {
-            console.log(`[GitHub Webhook] Triggering 1Panel operate: ${op}`)
+            log('info', '触发 1Panel 操作', { op })
             const res = await fetch(apiUrl, {
               method: 'POST',
               headers: {
@@ -99,9 +109,9 @@ export async function POST(req: NextRequest) {
               body: JSON.stringify({ operate: op, ID: Number(runtimeId) }),
             })
             const bodyText = await res.text()
-            console.log(`[GitHub Webhook] 1Panel ${op} response: ${bodyText}`)
+            log('info', '操作返回', { op, bodyText })
           } catch (e: any) {
-            console.error(`[GitHub Webhook] 1Panel ${op} failed:`, e.message)
+            log('error', '操作失败', { op, message: e.message })
           }
         }
       }
@@ -111,7 +121,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: 'Process triggered', event, delivery })
   } catch (err: any) {
-    console.error('[GitHub Webhook] Error processing webhook:', err.message)
+    console.error('[GitHub Webhook] 处理失败:', err.message)
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
