@@ -1,13 +1,20 @@
 #!/bin/bash
 
-# 设置工作目录为项目根目录
-cd "$(dirname "$0")/.."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+
+cd "$PROJECT_ROOT"
 
 echo "--- Deployment started at $(date) ---"
 
 # 1. 拉取最新代码
 echo "Pulling latest changes from GitHub..."
-git pull origin main
+if git pull origin main; then
+    echo "Git pull successful."
+else
+    echo "Error: Git pull failed. Stopping deployment."
+    exit 1
+fi
 
 # 2. 触发 1Panel API 完成后续工作 (安装依赖、构建、重启)
 echo "Triggering 1Panel API to handle dependencies, build and restart..."
@@ -16,11 +23,14 @@ echo "Triggering 1Panel API to handle dependencies, build and restart..."
 echo "Restarting application via 1Panel API..."
 
 # 加载 .env.local 环境变量 (如果存在)
-ENV_FILE="$(dirname "$0")/../.env.local"
+ENV_FILE="$PROJECT_ROOT/.env.local"
 if [ -f "$ENV_FILE" ]; then
-    echo "Loading environment variables from .env.local..."
-    # 过滤掉注释和空行，并导出变量
-    export $(grep -v '^#' "$ENV_FILE" | xargs)
+    echo "Loading environment variables from $ENV_FILE..."
+    set -a
+    source <(tr -d '\r' < "$ENV_FILE")
+    set +a
+else
+    echo "Warning: .env.local not found at $ENV_FILE"
 fi
 
 # 优先从环境变量获取
@@ -29,7 +39,7 @@ RUNTIME_ID="${PANEL_RUNTIME_ID}"
 API_URL="${PANEL_API_URL}"
 
 if [ -z "$API_KEY" ] || [ -z "$RUNTIME_ID" ]; then
-    echo "Error: PANEL_API_KEY or PANEL_RUNTIME_ID is not set in .env.local"
+    echo "Error: PANEL_API_KEY or PANEL_RUNTIME_ID is not set (from .env.local or process env)."
     exit 1
 fi
 

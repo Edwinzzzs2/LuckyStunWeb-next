@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
       // 异步执行更新脚本，不阻塞 HTTP 响应
       const scriptPath = path.join(process.cwd(), 'scripts', 'deploy.sh')
       
-      exec(`sh ${scriptPath}`, (error, stdout, stderr) => {
+      exec(`bash "${scriptPath}"`, (error, stdout, stderr) => {
         if (error) {
           console.error(`[GitHub Webhook] Update script error: ${error.message}`)
           return
