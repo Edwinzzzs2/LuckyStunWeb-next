@@ -164,7 +164,7 @@ export default function ConsoleWebhookLogsPage() {
       </div>
 
       <Card className="rounded-2xl p-4">
-        <div className="grid gap-3 md:grid-cols-[180px_160px_1fr_auto]">
+        <div className="grid gap-3 md:grid-cols-[180px_160px_1fr]">
           <select
             className="h-10 w-full rounded-xl border bg-background px-3 text-sm"
             value={source}
@@ -203,7 +203,6 @@ export default function ConsoleWebhookLogsPage() {
               </button>
             ) : null}
           </div>
-          <div className="flex items-center justify-end text-sm text-muted-foreground">共 {total} 条</div>
         </div>
       </Card>
 
