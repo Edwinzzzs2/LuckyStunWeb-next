@@ -6,21 +6,21 @@ import crypto from 'crypto'
  * 路径: /api/webhook/github
  */
 export async function POST(req: NextRequest) {
+  const log = (
+    level: 'info' | 'warn' | 'error',
+    message: string,
+    meta?: Record<string, unknown>
+  ) => {
+    const prefix = '[GitHub Webhook]'
+    const content = meta ? `${message} ${JSON.stringify(meta)}` : message
+    console[level](`${prefix} ${content}`)
+  }
+
   try {
     const payload = await req.text()
     const signature = req.headers.get('x-hub-signature-256') || ''
     const event = req.headers.get('x-github-event') || 'unknown'
     const delivery = req.headers.get('x-github-delivery') || 'unknown'
-
-    const log = (
-      level: 'info' | 'warn' | 'error',
-      message: string,
-      meta?: Record<string, unknown>
-    ) => {
-      const prefix = '[GitHub Webhook]'
-      const content = meta ? `${message} ${JSON.stringify(meta)}` : message
-      console[level](`${prefix} ${content}`)
-    }
 
     log('info', '收到事件', { event, delivery })
     
@@ -121,7 +121,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ message: 'Process triggered', event, delivery })
   } catch (err: any) {
-    console.error('[GitHub Webhook] 处理失败:', err.message)
+    log('error', '处理失败', { message: err.message })
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 })
   }
 }
