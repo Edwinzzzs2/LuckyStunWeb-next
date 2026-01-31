@@ -57,20 +57,17 @@ export function SiteCard({ site, targetUrl }: SiteCardProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem disabled={!mainUrl} onSelect={(e) => {
-                  e.preventDefault()
+                <DropdownMenuItem disabled={!mainUrl} onSelect={() => {
                   if (mainUrl) openNewTab(mainUrl)
                 }}>
                   打开外网
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled={!backupUrl} onSelect={(e) => {
-                  e.preventDefault()
+                <DropdownMenuItem disabled={!backupUrl} onSelect={() => {
                   if (backupUrl) openNewTab(backupUrl)
                 }}>
                   打开备用
                 </DropdownMenuItem>
-                <DropdownMenuItem disabled={!internalUrl} onSelect={(e) => {
-                  e.preventDefault()
+                <DropdownMenuItem disabled={!internalUrl} onSelect={() => {
                   if (internalUrl) openNewTab(internalUrl)
                 }}>
                   打开内网
