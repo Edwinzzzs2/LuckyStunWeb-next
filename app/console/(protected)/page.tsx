@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { FolderTree, Globe, Menu, RefreshCw, Users } from 'lucide-react'
+import { FolderTree, Globe, Menu, RefreshCw, Users, ClipboardList } from 'lucide-react'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -195,17 +195,30 @@ export default function ConsoleDashboardPage() {
           </div>
         </Link>
         {user?.isAdmin ? (
-          <Link href="/console/users" className="rounded-2xl border bg-card p-5 shadow-sm transition hover:bg-accent">
-            <div className="flex items-start gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
-                <Users className="h-5 w-5" />
+          <>
+            <Link href="/console/users" className="rounded-2xl border bg-card p-5 shadow-sm transition hover:bg-accent">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
+                  <Users className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-base font-semibold">后台管理</div>
+                  <div className="mt-1 truncate text-sm text-muted-foreground">用户创建、删除、重置密码</div>
+                </div>
               </div>
-              <div className="min-w-0">
-                <div className="truncate text-base font-semibold">后台管理</div>
-                <div className="mt-1 truncate text-sm text-muted-foreground">用户创建、删除、重置密码</div>
+            </Link>
+            <Link href="/console/webhook-logs" className="rounded-2xl border bg-card p-5 shadow-sm transition hover:bg-accent">
+              <div className="flex items-start gap-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
+                  <ClipboardList className="h-5 w-5" />
+                </div>
+                <div className="min-w-0">
+                  <div className="truncate text-base font-semibold">Webhook 日志</div>
+                  <div className="mt-1 truncate text-sm text-muted-foreground">查看 GitHub 与端口更新记录</div>
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
+          </>
         ) : null}
       </div>
     </div>
