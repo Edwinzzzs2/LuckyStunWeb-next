@@ -54,7 +54,7 @@ function countAll(nodes: CategoryNode[]) {
 export default function ConsoleDashboardPage() {
   const { user } = useConsoleAuth()
   const { push } = useConsoleToast()
-  const { openSidebar } = useConsoleShell()
+  const { openSidebar, setRefreshHandler } = useConsoleShell()
   const didLoadRef = useRef(false)
   const [categories, setCategories] = useState<CategoryNode[]>([])
   const [sites, setSites] = useState<SiteRow[]>([])
@@ -83,6 +83,11 @@ export default function ConsoleDashboardPage() {
     didLoadRef.current = true
     load()
   }, [])
+
+  useEffect(() => {
+    setRefreshHandler(() => load({ showToast: true }))
+    return () => setRefreshHandler(null)
+  }, [setRefreshHandler])
 
   const stats = useMemo(() => {
     const totalCategories = countAll(categories)
