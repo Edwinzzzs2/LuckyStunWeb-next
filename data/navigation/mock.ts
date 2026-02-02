@@ -1,6 +1,6 @@
 import type { MenuGroup, Section } from '@/data/navigation/types'
 
-export const SITE_ICON_PLACEHOLDER = 'https://web.dolast.top:18580/assets/images/favicon.png'
+export const SITE_ICON_PLACEHOLDER = 'https://web.example.top:18580/assets/images/favicon.png'
 
 export const demoSections: Section[] = [
   {
