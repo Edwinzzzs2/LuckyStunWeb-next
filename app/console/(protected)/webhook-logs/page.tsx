@@ -218,16 +218,6 @@ export default function ConsoleWebhookLogsPage() {
                             <li>Secret: 填写环境变量中的 <code>WEBHOOK_SECRET</code></li>
                           </ul>
                         </div>
-                        <div className="space-y-1">
-                          <p className="font-medium text-foreground">请求体示例 (JSON Body)</p>
-                          <div className="rounded-lg bg-background border p-2 font-mono text-[10px] whitespace-pre-wrap">
-{`{
-  "ref": "refs/heads/main",
-  "pusher": { "name": "user" },
-  "commits": [...]
-}`}
-                          </div>
-                        </div>
                       </div>
                     </div>
 
