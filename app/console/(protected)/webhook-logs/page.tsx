@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { ChevronLeft, ChevronRight, Menu, RefreshCw, Search, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Menu, RefreshCw, Search, X, Copy, ExternalLink, Info, Code, ShieldCheck, HelpCircle } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card } from '@/components/ui/card'
+import { cn } from '@/lib/utils'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { Pagination, PaginationButton, PaginationContent, PaginationItem } from '@/components/ui/pagination'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 import { fetchConsoleJson } from '@/app/console/_lib/http'
 import { useConsoleToast } from '@/app/console/_components/console-toast'
 import { useConsoleShell } from '@/app/console/_components/console-shell'
@@ -126,6 +128,16 @@ export default function ConsoleWebhookLogsPage() {
     return () => setRefreshHandler(null)
   }, [setRefreshHandler, queryString])
 
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    push({ title: '已复制到剪贴板', tone: 'success' })
+  }
+
+  const getFullUrl = (path: string) => {
+    if (typeof window === 'undefined') return path
+    return `${window.location.origin}${path}`
+  }
+
   return (
     <div className="grid gap-5">
       <div className="sticky top-0 z-20 -mx-4 bg-background/95 px-4 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 md:static md:mx-0 md:p-0 md:bg-transparent md:backdrop-blur-none">
@@ -149,17 +161,134 @@ export default function ConsoleWebhookLogsPage() {
               <div className="text-sm text-muted-foreground">查看 GitHub 与端口更新的主要日志</div>
             </div>
           </div>
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-xl"
-            onClick={load}
-            disabled={loading}
-            aria-label={loading ? '刷新中' : '刷新'}
-            title={loading ? '刷新中' : '刷新'}
-          >
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="rounded-xl transition-colors"
+                  aria-label="查看配置说明"
+                  title="查看配置说明"
+                >
+                  <HelpCircle className="h-4 w-4" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl rounded-3xl">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Info className="h-5 w-5 text-primary" />
+                    Webhook 配置说明
+                  </DialogTitle>
+                  <DialogDescription>
+                    配置外部通知或工具自动更新端口的接口信息。
+                  </DialogDescription>
+                </DialogHeader>
+
+                <div className="grid gap-6 py-4">
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* GitHub Webhook */}
+                    <div className="space-y-4 rounded-2xl border bg-muted/30 p-5 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 font-semibold">
+                          <ShieldCheck className="h-4 w-4 text-emerald-500" />
+                          GitHub 通知接收器
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 gap-1.5 text-xs rounded-lg"
+                          onClick={() => copyToClipboard(getFullUrl('/api/webhook/github'))}
+                        >
+                          <Copy className="h-3.5 w-3.5" /> 复制地址
+                        </Button>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-3">
+                        <div className="space-y-1">
+                          <p className="font-medium text-foreground">请求地址 (URL)</p>
+                          <div className="rounded-lg bg-background border p-2 font-mono text-[11px] break-all">
+                            {getFullUrl('/api/webhook/github')}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-medium text-foreground">配置参数</p>
+                          <ul className="list-disc pl-4 space-y-1">
+                            <li>Payload URL: 填入上述地址</li>
+                            <li>Content type: <code>application/json</code></li>
+                            <li>Secret: 填写环境变量中的 <code>WEBHOOK_SECRET</code></li>
+                          </ul>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-medium text-foreground">请求体示例 (JSON Body)</p>
+                          <div className="rounded-lg bg-background border p-2 font-mono text-[10px] whitespace-pre-wrap">
+{`{
+  "ref": "refs/heads/main",
+  "pusher": { "name": "user" },
+  "commits": [...]
+}`}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Update Ports Webhook */}
+                    <div className="space-y-4 rounded-2xl border bg-muted/30 p-5 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 font-semibold">
+                          <Code className="h-4 w-4 text-blue-500" />
+                          端口批量更新接口
+                        </div>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className="h-8 gap-1.5 text-xs rounded-lg"
+                          onClick={() => copyToClipboard(getFullUrl('/api/webhook/update-ports'))}
+                        >
+                          <Copy className="h-3.5 w-3.5" /> 复制地址
+                        </Button>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-3">
+                        <div className="space-y-1">
+                          <p className="font-medium text-foreground">请求地址 (URL)</p>
+                          <div className="rounded-lg bg-background border p-2 font-mono text-[11px] break-all">
+                            {getFullUrl('/api/webhook/update-ports')}
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-medium text-foreground">请求头 (Headers)</p>
+                          <ul className="list-disc pl-4 space-y-1">
+                            <li>Method: <code>POST</code></li>
+                            <li>Content-Type: <code>application/json</code></li>
+                            <li>Authorization: <code>Bearer &lt;WEBHOOK_SECRET&gt;</code></li>
+                          </ul>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="font-medium text-foreground">请求体示例 (JSON Body)</p>
+                          <div className="rounded-lg bg-background border p-2 font-mono text-[10px] whitespace-pre-wrap">
+{`{
+  "domains": ["yourdomain.com"],
+  "port": 8080
+}`}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-xl"
+              onClick={load}
+              disabled={loading}
+              aria-label={loading ? '刷新中' : '刷新'}
+              title={loading ? '刷新中' : '刷新'}
+            >
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
