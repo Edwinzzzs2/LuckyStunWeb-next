@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
     
     const secret = process.env.WEBHOOK_SECRET
     if (secret) {
+      // 1. 优先尝试 GitHub 标准签名校验
       if (signature) {
         const hmac = crypto.createHmac('sha256', secret)
         const digest = 'sha256=' + hmac.update(payload).digest('hex')
@@ -35,9 +36,18 @@ export async function POST(req: NextRequest) {
           await log('error', '签名校验失败', undefined, 401)
           return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
         }
-      } else {
-        await log('error', '缺少签名头', undefined, 401)
-        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        await log('info', '签名校验通过 (GitHub Signature)')
+      } 
+      // 2. 备选方案：尝试 Authorization: Bearer <SECRET> 校验 (方便手动测试)
+      else {
+        const authHeader = req.headers.get('authorization') || ''
+        const bearerToken = authHeader.toLowerCase().startsWith('bearer ') ? authHeader.slice(7).trim() : ''
+        
+        if (bearerToken !== secret) {
+          await log('error', '鉴权失败：缺少签名头且 Bearer Token 无效', undefined, 401)
+          return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+        }
+        await log('info', '鉴权通过 (Bearer Token)')
       }
     }
 
