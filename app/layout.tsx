@@ -30,7 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
-        <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4737300_dld99fvpu4a.css" />
+        <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4737300_lirrln4oop.css" />
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased overflow-hidden">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
