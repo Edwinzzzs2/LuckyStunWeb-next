@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X, ArrowUp, ClipboardList } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X, ArrowUp, ClipboardList, Power, Loader2 } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils'
 import { PullToRefresh } from '@/app/components/ui/pull-to-refresh'
 import { useConsoleAuth } from '@/app/console/_components/console-auth'
 import { useConsoleToast } from '@/app/console/_components/console-toast'
+import { restartService } from '@/app/actions/admin-actions'
 
 type NavItem = {
   href: string
@@ -42,6 +43,24 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const [pullEnabled, setPullEnabled] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const refreshHandlerRef = useRef<(() => Promise<void>) | null>(null)
+  const [isRestarting, setIsRestarting] = useState(false)
+
+  async function handleRestart() {
+    if (!confirm('确定要重启服务吗？将先拉取代码，等待约 1 分钟后再重启容器，服务可能会暂时中断。')) return
+    setIsRestarting(true)
+    try {
+      const res = await restartService()
+      if (res.success) {
+        push({ title: '已发送重启指令', detail: res.message, tone: 'success' })
+      } else {
+        push({ title: '重启失败', detail: res.message, tone: 'danger' })
+      }
+    } catch (e: any) {
+      push({ title: '操作异常', detail: e.message, tone: 'danger' })
+    } finally {
+      setIsRestarting(false)
+    }
+  }
 
   useEffect(() => {
     const main = scrollRef.current
@@ -176,6 +195,18 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
                 <div className="truncate text-sm font-semibold">{user?.username || '-'}</div>
                 <div className="truncate text-xs text-muted-foreground">{user?.isAdmin ? '管理员' : '用户'}</div>
               </div>
+              {user?.isAdmin && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="ml-auto h-8 w-8 text-muted-foreground hover:text-foreground"
+                  onClick={handleRestart}
+                  disabled={isRestarting}
+                  title="重启服务"
+                >
+                  {isRestarting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
+                </Button>
+              )}
             </div>
           </div>
         ) : null}
