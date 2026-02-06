@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X, ArrowUp, ClipboardList, Power, Loader2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X, ArrowUp, ClipboardList, Power, Loader2, Monitor } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -34,7 +34,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const router = useRouter()
   const { user, logout } = useConsoleAuth()
   const { push } = useConsoleToast()
-  const { resolvedTheme, setTheme } = useTheme()
+  const { resolvedTheme, setTheme, theme } = useTheme()
 
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
@@ -44,6 +44,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const refreshHandlerRef = useRef<(() => Promise<void>) | null>(null)
   const [isRestarting, setIsRestarting] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   async function handleRestart() {
     if (!confirm('确定要重启服务吗？将先拉取代码，等待约 1 分钟后再重启容器，服务可能会暂时中断。')) return
@@ -63,6 +64,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   }
 
   useEffect(() => {
+    setMounted(true)
     const main = scrollRef.current
     if (!main) return
 
@@ -127,9 +129,11 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   }, [visibleNav, pathname])
 
   function toggleTheme() {
-    const effective = resolvedTheme === 'dark' ? 'dark' : 'light'
-    setTheme(effective === 'dark' ? 'light' : 'dark')
+    const current = theme === 'system' ? 'system' : resolvedTheme === 'dark' ? 'dark' : 'light'
+    setTheme(current === 'light' ? 'dark' : current === 'dark' ? 'system' : 'light')
   }
+
+  const themeLabel = !mounted ? '自动' : theme === 'system' ? '自动' : resolvedTheme === 'dark' ? '深色' : '浅色'
 
   async function onLogout() {
     try {
@@ -271,11 +275,13 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
             >
               <span className="flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-muted">
-                  {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                  {mounted ? (theme === 'system' ? <Monitor className="h-4 w-4" /> : resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : (
+                    <Monitor className="h-4 w-4" />
+                  )}
                 </span>
                 {!isCollapsed ? '切换主题' : null}
               </span>
-              {!isCollapsed ? <span className="text-xs text-muted-foreground">{resolvedTheme}</span> : null}
+              {!isCollapsed ? <span className="text-xs text-muted-foreground">{themeLabel}</span> : null}
             </Button>
           </div>
         </div>
@@ -322,7 +328,9 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
           onClick={toggleTheme}
           aria-label="切换主题"
         >
-          {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {mounted ? (theme === 'system' ? <Monitor className="h-4 w-4" /> : resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : (
+            <Monitor className="h-4 w-4" />
+          )}
         </Button>
       </div>
 

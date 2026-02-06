@@ -1,7 +1,7 @@
 "use client"
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { Moon, Sun } from 'lucide-react'
+import { Moon, Sun, Monitor } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Button } from '@/components/ui/button'
 import type { Site, Section, MenuGroup } from '@/data/navigation/types'
@@ -21,9 +21,10 @@ export function NavigationPage({ initialData }: { initialData: { sections: Secti
   const [search, setSearch] = useState('')
   const [activeSectionId, setActiveSectionId] = useState<string>('')
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const contentScrollRef = useRef<HTMLDivElement | null>(null)
   const searchInputRef = useRef<HTMLInputElement | null>(null)
-  const { setTheme, resolvedTheme } = useTheme()
+  const { setTheme, resolvedTheme, theme } = useTheme()
 
   const sectionHasChildren = useMemo(() => {
     const map: Record<string, boolean> = {}
@@ -56,6 +57,7 @@ export function NavigationPage({ initialData }: { initialData: { sections: Secti
   }, [search, sections, sectionHasChildren])
 
   useEffect(() => {
+    setMounted(true)
     if (visibleSections.length === 0) return
     setActiveSectionId((prev) => {
       if (prev && visibleSections.some((s) => s.id === prev)) return prev
@@ -100,8 +102,8 @@ export function NavigationPage({ initialData }: { initialData: { sections: Secti
   }
 
   function toggleTheme() {
-    const effective = resolvedTheme === 'dark' ? 'dark' : 'light'
-    setTheme(effective === 'dark' ? 'light' : 'dark')
+    const current = theme === 'system' ? 'system' : resolvedTheme === 'dark' ? 'dark' : 'light'
+    setTheme(current === 'light' ? 'dark' : current === 'dark' ? 'system' : 'light')
   }
 
   function openConsole() {
@@ -192,7 +194,9 @@ export function NavigationPage({ initialData }: { initialData: { sections: Secti
           aria-label="切换主题"
           title="切换主题"
         >
-          {resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          {mounted ? (theme === 'system' ? <Monitor className="h-4 w-4" /> : resolvedTheme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />) : (
+            <Monitor className="h-4 w-4" />
+          )}
         </Button>
       </div>
 
