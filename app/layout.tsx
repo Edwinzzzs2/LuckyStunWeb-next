@@ -4,6 +4,7 @@ import type { Metadata, Viewport } from 'next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { PwaRegister } from '@/app/components/pwa/pwa-register'
 import { logSystemStartupOnce } from '@/lib/logger'
+import { getIconfontUrl } from '@/lib/settings'
 
 void logSystemStartupOnce()
 
@@ -29,11 +30,14 @@ export const viewport: Viewport = {
   viewportFit: 'cover',
 }
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export const dynamic = 'force-dynamic'
+
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const iconfontUrl = await getIconfontUrl()
   return (
     <html lang="zh-CN" suppressHydrationWarning>
       <head>
-        <link rel="stylesheet" href="//at.alicdn.com/t/c/font_4737300_lirrln4oop.css" />
+        <link rel="stylesheet" href={iconfontUrl} />
       </head>
       <body className="min-h-screen bg-background text-foreground antialiased overflow-hidden">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

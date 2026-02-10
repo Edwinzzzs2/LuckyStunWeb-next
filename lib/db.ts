@@ -76,6 +76,13 @@ async function ensureInitialized() {
         '  created_at TIMESTAMPTZ NOT NULL DEFAULT now()\n' +
         ')'
     )
+    await p.query(
+      'CREATE TABLE IF NOT EXISTS settings (\n' +
+        '  key VARCHAR(128) PRIMARY KEY,\n' +
+        '  value TEXT NOT NULL,\n' +
+        '  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()\n' +
+        ')'
+    )
     await p.query('ALTER TABLE categories ADD COLUMN IF NOT EXISTS parent_id BIGINT')
     await p.query('ALTER TABLE categories ADD COLUMN IF NOT EXISTS sort_order INT NOT NULL DEFAULT 0')
     await p.query('ALTER TABLE categories ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ NOT NULL DEFAULT now()')

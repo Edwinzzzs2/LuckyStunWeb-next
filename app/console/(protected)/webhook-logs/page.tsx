@@ -56,7 +56,7 @@ const sourceLabel: Record<string, string> = {
   system: '系统日志',
   api: '接口日志',
   github: 'GitHub',
-  'update-ports': 'Lucky',
+  'update-ports': '端口更新',
 }
 
 export default function ConsoleWebhookLogsPage() {
@@ -157,10 +157,10 @@ export default function ConsoleWebhookLogsPage() {
             </Button>
             <div className="min-w-0">
               <div className="flex items-center gap-2 truncate text-lg font-semibold sm:text-2xl">
-                系统日志
+                日志
                 {loading ? <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
               </div>
-              <div className="text-sm text-muted-foreground">查看系统、接口、GitHub 与Lucky的主要日志</div>
+              <div className="text-sm text-muted-foreground">查看系统、接口、GitHub 与端口更新的主要日志</div>
             </div>
           </div>
           <div className="flex items-center gap-2">

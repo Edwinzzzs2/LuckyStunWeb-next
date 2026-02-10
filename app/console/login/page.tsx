@@ -87,7 +87,8 @@ function ConsoleLoginInner() {
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>分类管理：树形结构，父子级约束</span></div>
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>网站管理：增删改、显隐、批量操作、搜索</span></div>
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>用户管理：管理员可见，重置密码、删除</span></div>
-                    <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>日志查看：记录系统、GitHub 与与Lucky端口更新的主要日志端口更新触发</span></div>
+                    <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>图标管理：预览 iconfont 并复制图标名称</span></div>
+                    <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>日志查看：记录系统、接口、GitHub 与端口更新触发</span></div>
                   </div>
                 </div>
               </div>

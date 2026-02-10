@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
-import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X, ArrowUp, ClipboardList, Power, Loader2, Monitor } from 'lucide-react'
+import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X, ArrowUp, ClipboardList, Power, Loader2, Monitor, Image } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -116,7 +116,8 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       { href: '/console/categories', label: '分类管理', icon: <FolderTree className="h-4 w-4" /> },
       { href: '/console/sites', label: '网站管理', icon: <Globe className="h-4 w-4" /> },
       { href: '/console/users', label: '后台管理', icon: <Users className="h-4 w-4" />, adminOnly: true },
-      { href: '/console/webhook-logs', label: '系统日志', icon: <ClipboardList className="h-4 w-4" />, adminOnly: true },
+      { href: '/console/icons', label: '图标管理', icon: <Image className="h-4 w-4" />, adminOnly: true },
+      { href: '/console/webhook-logs', label: '日志', icon: <ClipboardList className="h-4 w-4" />, adminOnly: true },
     ],
     []
   )
