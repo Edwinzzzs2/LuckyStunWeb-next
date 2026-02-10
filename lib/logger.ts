@@ -68,9 +68,28 @@ export async function logApiCall(
     const pathname = u.pathname || ''
     if (pathname.startsWith('/api/webhook/logs')) return
     let biz = ''
-    if (pathname.startsWith('/api/categories')) biz = '分类管理'
-    else if (pathname.startsWith('/api/sites')) biz = '网站管理'
-    else if (pathname.startsWith('/api/auth')) biz = '用户管理'
+    switch (true) {
+      case pathname.startsWith('/api/categories'):
+        biz = '分类管理'
+        break
+      case pathname.startsWith('/api/sites'):
+        biz = '网站管理'
+        break
+      case pathname.startsWith('/api/auth'):
+        biz = '用户管理'
+        break
+      case pathname.startsWith('/api/navigation'):
+        biz = '导航数据'
+        break
+      case pathname.startsWith('/api/redirect'):
+        biz = '站点跳转'
+        break
+      case pathname.startsWith('/api/settings/iconfont'):
+        biz = '图标管理'
+        break
+      default:
+        biz = ''
+    }
     const message = biz ? `接口调用-${biz}` : '接口调用'
     await log('info', message, { method, url, ...(extra || {}) })
   } catch {}

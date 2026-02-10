@@ -124,6 +124,16 @@ export default function ConsoleWebhookLogsPage() {
   }, [queryString])
 
   useEffect(() => {
+    if (!didLoadRef.current) return
+    const timer = window.setInterval(() => {
+      load()
+    }, 5000)
+    return () => {
+      window.clearInterval(timer)
+    }
+  }, [queryString])
+
+  useEffect(() => {
     setRefreshHandler(async () => {
       await load()
     })
