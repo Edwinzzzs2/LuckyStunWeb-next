@@ -57,6 +57,7 @@ const sourceLabel: Record<string, string> = {
   api: '接口日志',
   github: 'GitHub',
   'update-ports': 'Lucky',
+  auth: '认证日志',
 }
 
 export default function ConsoleWebhookLogsPage() {
@@ -323,6 +324,7 @@ export default function ConsoleWebhookLogsPage() {
             <option value="all">{isMobile ? '全部' : '全部来源'}</option>
             <option value="system">{isMobile ? '系统' : '系统日志'}</option>
             <option value="api">{isMobile ? '接口' : '接口日志'}</option>
+            <option value="auth">{isMobile ? '认证' : '认证日志'}</option>
             <option value="github">GitHub</option>
             <option value="update-ports">Lucky</option>
           </select>

@@ -88,7 +88,7 @@ function ConsoleLoginInner() {
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>网站管理：增删改、显隐、批量操作、搜索</span></div>
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>用户管理：管理员可见，重置密码、删除</span></div>
                     <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>图标管理：预览 iconfont 并复制图标名称</span></div>
-                    <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>日志查看：记录系统、接口、GitHub 与端口更新触发</span></div>
+                    <div className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-foreground" /><span>日志查看：记录系统、接口、GitHub 与Lucky端口更新触发</span></div>
                   </div>
                 </div>
               </div>
@@ -112,7 +112,7 @@ function ConsoleLoginInner() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         autoComplete="username"
-                        placeholder="admin"
+                        placeholder="请输入用户名"
                         className="h-auto border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
                       />
                     </div>
@@ -128,7 +128,7 @@ function ConsoleLoginInner() {
                         onChange={(e) => setPassword(e.target.value)}
                         type={showPassword ? 'text' : 'password'}
                         autoComplete="current-password"
-                        placeholder="••••••••"
+                        placeholder="请输入密码"
                         className="h-auto border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
                       />
                       <Button

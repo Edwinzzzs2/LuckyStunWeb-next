@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createContext, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useTheme } from 'next-themes'
 import { ChevronLeft, ChevronRight, LayoutGrid, FolderTree, Globe, Users, Menu, Moon, Sun, LogOut, Home, X, ArrowUp, ClipboardList, Power, Loader2, Monitor, Image } from 'lucide-react'
+import { RestartDialog } from './restart-dialog'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
@@ -45,9 +46,13 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const refreshHandlerRef = useRef<(() => Promise<void>) | null>(null)
   const [isRestarting, setIsRestarting] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [showRestartDialog, setShowRestartDialog] = useState(false)
 
   async function handleRestart() {
-    if (!confirm('确定要重启服务吗？将先拉取代码，等待约 1 分钟后再重启容器，服务可能会暂时中断。')) return
+    setShowRestartDialog(true)
+  }
+
+  async function confirmRestart() {
     setIsRestarting(true)
     try {
       const res = await restartService()
@@ -60,6 +65,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       push({ title: '操作异常', detail: e.message, tone: 'danger' })
     } finally {
       setIsRestarting(false)
+      setShowRestartDialog(false)
     }
   }
 
@@ -343,6 +349,13 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
             <Sidebar variant="mobile" />
           </SheetContent>
         </Sheet>
+
+        <RestartDialog
+          open={showRestartDialog}
+          onOpenChange={setShowRestartDialog}
+          onConfirm={confirmRestart}
+          isRestarting={isRestarting}
+        />
       </div>
     </ConsoleShellContext.Provider>
   )

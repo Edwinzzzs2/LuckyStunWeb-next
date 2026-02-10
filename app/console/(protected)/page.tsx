@@ -230,7 +230,7 @@ export default function ConsoleDashboardPage() {
                 </div>
                 <div className="min-w-0">
                   <div className="truncate text-base font-semibold">日志</div>
-                  <div className="mt-1 truncate text-sm text-muted-foreground">查看系统、接口、GitHub 与端口更新记录</div>
+                  <div className="mt-1 truncate text-sm text-muted-foreground">查看系统、接口、GitHub 与Lucky端口更新记录</div>
                 </div>
               </div>
             </Link>
