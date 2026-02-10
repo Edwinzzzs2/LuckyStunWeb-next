@@ -58,9 +58,16 @@ export async function logApiCall(
   extra?: Record<string, unknown>
 ) {
   try {
-    const ip = typeof (req as any).headers?.get === 'function'
-      ? ((req as any).headers.get('x-forwarded-for') || '').split(',')[0]?.trim() || (req as any).headers.get('x-real-ip') || ''
-      : ''
+    const header = typeof (req as any).headers?.get === 'function' ? (req as any).headers : null
+    const rawForwarded = header?.get('x-forwarded-for') || header?.get('x-forwarded-host') || ''
+    const forwardedIp = rawForwarded.split(',')[0]?.trim() || ''
+    const ip =
+      forwardedIp ||
+      header?.get('x-real-ip') ||
+      header?.get('cf-connecting-ip') ||
+      header?.get('x-client-ip') ||
+      header?.get('x-forwarded') ||
+      ''
     const log = createWebhookLogger({ source: 'api', prefix: '[接口]', ip })
     const method = (req as any).method || 'GET'
     const url = (req as any).url || ''
