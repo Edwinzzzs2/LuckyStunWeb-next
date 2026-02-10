@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server'
 import { query } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
-export async function GET() {
+export async function GET(req: Request) {
+  await logApiCall(req)
   logger.info('[Categories Flat] Request received')
   try {
     const rows = await query(

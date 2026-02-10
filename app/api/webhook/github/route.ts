@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import crypto from 'crypto'
-import { createWebhookLogger } from '@/lib/logger'
+import { createWebhookLogger, logApiCall } from '@/lib/logger'
 
 /**
  * GitHub Webhook 接收器
  * 路径: /api/webhook/github
  */
 export async function POST(req: NextRequest) {
+  await logApiCall(req)
   const ip = (() => {
     const forwarded = req.headers.get('x-forwarded-for') || ''
     const first = forwarded.split(',')[0]?.trim()

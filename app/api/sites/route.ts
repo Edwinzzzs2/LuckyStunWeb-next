@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 type SiteBody = {
   category_id?: number
@@ -28,6 +28,7 @@ function isValidUrl(value?: string) {
 }
 
 export async function GET(req: NextRequest) {
+  await logApiCall(req)
   logger.info('[Sites API GET] Request received')
   const user = getAuthUser(req)
   if (!user) {
@@ -46,6 +47,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  await logApiCall(req)
   logger.info('[Sites API POST] Request received')
   const user = getAuthUser(req)
   if (!user) {

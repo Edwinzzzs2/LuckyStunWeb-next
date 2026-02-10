@@ -3,6 +3,9 @@ import type { ReactNode } from 'react'
 import type { Metadata, Viewport } from 'next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { PwaRegister } from '@/app/components/pwa/pwa-register'
+import { logSystemStartupOnce } from '@/lib/logger'
+
+void logSystemStartupOnce()
 
 export const metadata: Metadata = {
   title: 'LuckyStun - 个人导航页',

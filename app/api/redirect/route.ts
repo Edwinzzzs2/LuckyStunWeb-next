@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { query } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
+  await logApiCall(req)
   // logger.info('[Redirect GET] Request received')
   const url = new URL(req.url)
   const id = Number(url.searchParams.get('id'))

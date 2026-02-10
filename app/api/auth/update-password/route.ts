@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 type Body = { newPassword?: string; userId?: number }
 
 export async function POST(req: NextRequest) {
+  await logApiCall(req)
   logger.info('[Update Password] Request received')
   const user = getAuthUser(req)
   if (!user) {

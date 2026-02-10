@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { getNavigationTree } from '@/lib/navigation'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
-export async function GET() {
+export async function GET(req: Request) {
+  await logApiCall(req)
   logger.info('[Navigation GET] Request received')
   try {
     const tree = await getNavigationTree()

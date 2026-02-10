@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
-export async function POST() {
+export async function POST(req: Request) {
+  await logApiCall(req)
   logger.info('[Logout] Request received')
   const res = NextResponse.json({ message: '已退出登录' })
   res.cookies.set('token', '', {

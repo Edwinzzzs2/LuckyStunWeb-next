@@ -2,11 +2,12 @@ import bcrypt from 'bcryptjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 type RegisterBody = { username?: string; password?: string; isAdmin?: boolean }
 
 export async function POST(req: NextRequest) {
+  await logApiCall(req)
   logger.info('[Register] Request received')
   const { data, error } = await readJson<RegisterBody>(req)
   if (error) {

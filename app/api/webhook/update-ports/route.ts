@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
-import { createWebhookLogger } from '@/lib/logger'
+import { createWebhookLogger, logApiCall } from '@/lib/logger'
 
 type Body = { port: number | null; domains?: string[]; ids?: number[] }
 
@@ -36,6 +36,7 @@ function updateUrlPort(url: string | null, newPort: number | null) {
 }
 
 export async function POST(req: NextRequest) {
+  await logApiCall(req)
   const ip = (() => {
     const forwarded = req.headers.get('x-forwarded-for') || ''
     const first = forwarded.split(',')[0]?.trim()

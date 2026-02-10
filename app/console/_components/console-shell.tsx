@@ -116,7 +116,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
       { href: '/console/categories', label: '分类管理', icon: <FolderTree className="h-4 w-4" /> },
       { href: '/console/sites', label: '网站管理', icon: <Globe className="h-4 w-4" /> },
       { href: '/console/users', label: '后台管理', icon: <Users className="h-4 w-4" />, adminOnly: true },
-      { href: '/console/webhook-logs', label: 'Webhook日志', icon: <ClipboardList className="h-4 w-4" />, adminOnly: true },
+      { href: '/console/webhook-logs', label: '系统日志', icon: <ClipboardList className="h-4 w-4" />, adminOnly: true },
     ],
     []
   )

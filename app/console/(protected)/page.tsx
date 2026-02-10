@@ -218,8 +218,8 @@ export default function ConsoleDashboardPage() {
                   <ClipboardList className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <div className="truncate text-base font-semibold">Webhook 日志</div>
-                  <div className="mt-1 truncate text-sm text-muted-foreground">查看 GitHub 与端口更新记录</div>
+                  <div className="truncate text-base font-semibold">系统日志</div>
+                  <div className="mt-1 truncate text-sm text-muted-foreground">查看系统、接口、GitHub 与Lucky的主要日志</div>
                 </div>
               </div>
             </Link>

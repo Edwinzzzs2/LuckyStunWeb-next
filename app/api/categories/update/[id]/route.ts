@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 type Body = { name?: string; en_name?: string; icon?: string; parent_id?: number | string | null; sort_order?: number }
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  await logApiCall(req)
   const params = await context.params
   logger.info(`[Category Update] Request received for ID: ${params.id}`)
   const user = getAuthUser(req)

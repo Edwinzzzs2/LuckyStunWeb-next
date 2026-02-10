@@ -53,8 +53,10 @@ function formatIp(value?: string | null) {
 }
 
 const sourceLabel: Record<string, string> = {
-  github: 'GitHub Webhook',
-  'update-ports': 'Lucky Webhook',
+  system: '系统日志',
+  api: '接口日志',
+  github: 'GitHub',
+  'update-ports': 'Lucky',
 }
 
 export default function ConsoleWebhookLogsPage() {
@@ -155,10 +157,10 @@ export default function ConsoleWebhookLogsPage() {
             </Button>
             <div className="min-w-0">
               <div className="flex items-center gap-2 truncate text-lg font-semibold sm:text-2xl">
-                Webhook 日志
+                系统日志
                 {loading ? <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
               </div>
-              <div className="text-sm text-muted-foreground">查看 GitHub 与端口更新的主要日志</div>
+              <div className="text-sm text-muted-foreground">查看系统、接口、GitHub 与Lucky的主要日志</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -309,8 +311,10 @@ export default function ConsoleWebhookLogsPage() {
             onChange={(e) => setSource(e.target.value)}
           >
             <option value="all">{isMobile ? '全部' : '全部来源'}</option>
+            <option value="system">{isMobile ? '系统' : '系统日志'}</option>
+            <option value="api">{isMobile ? '接口' : '接口日志'}</option>
             <option value="github">GitHub</option>
-            <option value="update-ports">Lucky</option>
+            <option value="update-ports">端口更新</option>
           </select>
         </div>
         <div className="min-w-0 w-24 sm:w-32">

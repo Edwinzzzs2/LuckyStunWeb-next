@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 type CategoryBody = {
   name?: string
@@ -12,7 +12,8 @@ type CategoryBody = {
   sort_order?: number
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  await logApiCall(req)
   logger.info('[Categories GET] Request received')
   try {
     const rows = await query(
@@ -40,6 +41,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  await logApiCall(req)
   logger.info('[Categories POST] Request received')
   const user = getAuthUser(req)
   if (!user) {

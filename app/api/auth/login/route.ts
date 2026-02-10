@@ -3,11 +3,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readJson } from '@/lib/api'
 import { query } from '@/lib/db'
 import { signToken } from '@/lib/auth'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 type LoginBody = { username?: string; password?: string }
 
 export async function POST(req: NextRequest) {
+  await logApiCall(req)
   const { data, error } = await readJson<LoginBody>(req)
   if (error) {
     logger.error('[Login] JSON parse error:', error)

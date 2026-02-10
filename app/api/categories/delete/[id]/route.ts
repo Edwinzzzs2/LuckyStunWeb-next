@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { query, execute } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 export async function POST(req: NextRequest, context: { params: Promise<{ id: string }> }) {
+  await logApiCall(req)
   const params = await context.params
   logger.info(`[Category Delete] Request received for ID: ${params.id}`)
   const user = getAuthUser(req)

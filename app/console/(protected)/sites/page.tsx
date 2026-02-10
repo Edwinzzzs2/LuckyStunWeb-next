@@ -426,7 +426,7 @@ export default function ConsoleSitesPage() {
               setQuery(e.target.value)
               setPage(1)
             }}
-            placeholder="按标题 / URL 搜索"
+            placeholder="按标题/URL搜索"
             className="min-w-0 pl-9 pr-9"
             disabled={loading}
           />

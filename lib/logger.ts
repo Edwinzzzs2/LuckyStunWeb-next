@@ -44,3 +44,26 @@ export function createWebhookLogger({
     }
   }
 }
+
+export async function logSystemStartupOnce() {
+  const holder = globalThis as typeof globalThis & { __systemStartupLogged?: boolean }
+  if (holder.__systemStartupLogged) return
+  holder.__systemStartupLogged = true
+  const log = createWebhookLogger({ source: 'system', prefix: '[系统]' })
+  await log('info', '系统已启动')
+}
+
+export async function logApiCall(
+  req: Request | { url: string; method?: string; headers?: Headers | Record<string, string> },
+  extra?: Record<string, unknown>
+) {
+  try {
+    const ip = typeof (req as any).headers?.get === 'function'
+      ? ((req as any).headers.get('x-forwarded-for') || '').split(',')[0]?.trim() || (req as any).headers.get('x-real-ip') || ''
+      : ''
+    const log = createWebhookLogger({ source: 'api', prefix: '[接口]', ip })
+    const method = (req as any).method || 'GET'
+    const url = (req as any).url || ''
+    await log('info', '接口调用', { method, url, ...(extra || {}) })
+  } catch {}
+}

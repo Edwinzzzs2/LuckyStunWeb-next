@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { query } from '@/lib/db'
-import { logger } from '@/lib/logger'
+import { logApiCall, logger } from '@/lib/logger'
 
 export async function GET(req: NextRequest) {
+  await logApiCall(req)
   logger.info('[Auth Users] Request received')
   const user = getAuthUser(req)
   if (!user) {
