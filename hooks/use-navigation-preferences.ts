@@ -26,6 +26,34 @@ export function useNavigationPreferences() {
     if (storedNetwork === 'main' || storedNetwork === 'backup' || storedNetwork === 'internal') {
       setNetwork(storedNetwork)
     }
+    let timer: any
+    const tryFetch = async (url: string, ms = 2500) => {
+      const c = new AbortController()
+      const t = setTimeout(() => c.abort(), ms)
+      try {
+        await fetch(url, { mode: 'no-cors', cache: 'no-store', signal: c.signal })
+        return true
+      } catch {
+        return false
+      } finally {
+        clearTimeout(t)
+      }
+    }
+    const detect = async () => {
+      const ok = (await tryFetch('http://192.168.31.3')) || (await tryFetch('https://192.168.31.3'))
+      if (ok) {
+        setNetwork((prev) => (prev === 'backup' ? prev : 'internal'))
+        if (localStorage.getItem('ui_network') !== 'backup') localStorage.setItem('ui_network', 'internal')
+      } else {
+        setNetwork((prev) => (prev === 'backup' ? prev : 'main'))
+        if (localStorage.getItem('ui_network') !== 'backup') localStorage.setItem('ui_network', 'main')
+      }
+    }
+    detect()
+    timer = setInterval(detect, 30000)
+    return () => {
+      if (timer) clearInterval(timer)
+    }
   }, [])
 
   const setNetworkType = useCallback((type: NetworkType) => {
