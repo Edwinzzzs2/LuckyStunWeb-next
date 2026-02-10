@@ -64,6 +64,14 @@ export async function logApiCall(
     const log = createWebhookLogger({ source: 'api', prefix: '[接口]', ip })
     const method = (req as any).method || 'GET'
     const url = (req as any).url || ''
-    await log('info', '接口调用', { method, url, ...(extra || {}) })
+    const u = new URL(url, 'http://localhost')
+    const pathname = u.pathname || ''
+    if (pathname.startsWith('/api/webhook/logs')) return
+    let biz = ''
+    if (pathname.startsWith('/api/categories')) biz = '分类管理'
+    else if (pathname.startsWith('/api/sites')) biz = '网站管理'
+    else if (pathname.startsWith('/api/auth')) biz = '用户管理'
+    const message = biz ? `接口调用-${biz}` : '接口调用'
+    await log('info', message, { method, url, ...(extra || {}) })
   } catch {}
 }

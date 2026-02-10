@@ -176,13 +176,13 @@ export default function ConsoleIconsPage() {
             </button>
           ) : null}
         </div>
-        <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
+        <div className="flex min-w-0 flex-row items-center gap-2">
           <div className="relative min-w-0 flex-1">
             <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input value={inputUrl} onChange={(e) => setInputUrl(e.target.value)} placeholder="例如：https://at.alicdn.com/t/c/font_xxx.css" className="min-w-0 pl-9" />
           </div>
           <Button
-            className="rounded-xl"
+            className="rounded-xl shrink-0"
             onClick={async () => {
               const raw = inputUrl.trim()
               if (!raw) {
