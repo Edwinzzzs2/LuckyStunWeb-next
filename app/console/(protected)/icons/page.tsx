@@ -159,7 +159,7 @@ export default function ConsoleIconsPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" className="rounded-xl" onClick={load} disabled={loading} aria-label={loading ? '刷新中' : '刷新'} title={loading ? '刷新中' : '刷新'}>
+            <Button variant="outline" size="icon" className="rounded-xl" onClick={() => load()} disabled={loading} aria-label={loading ? '刷新中' : '刷新'} title={loading ? '刷新中' : '刷新'}>
               <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
