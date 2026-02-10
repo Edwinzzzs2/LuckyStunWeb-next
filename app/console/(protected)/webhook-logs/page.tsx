@@ -53,8 +53,8 @@ function formatIp(value?: string | null) {
 }
 
 const sourceLabel: Record<string, string> = {
-  github: 'GitHub',
-  'update-ports': '端口更新',
+  github: 'GitHub Webhook',
+  'update-ports': 'Lucky Webhook',
 }
 
 export default function ConsoleWebhookLogsPage() {
@@ -282,48 +282,50 @@ export default function ConsoleWebhookLogsPage() {
         </div>
       </div>
 
-      <Card className="rounded-2xl p-4">
-        <div className="grid gap-3 md:grid-cols-[180px_160px_1fr]">
+      <div className="flex flex-nowrap gap-2 sm:flex-row sm:items-center">
+        <div className="relative min-w-0 flex-1 sm:w-80 sm:flex-none">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder={isMobile ? '搜索' : '搜索消息或元数据'}
+            className="min-w-0 pl-9 pr-9"
+          />
+          {keyword ? (
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              onClick={() => setKeyword('')}
+              aria-label="清除搜索"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
+        </div>
+        <div className="min-w-0 w-24 sm:w-40">
           <select
-            className="h-10 w-full rounded-xl border bg-background px-3 text-sm"
+            className="h-10 w-full rounded-md border bg-background px-2 text-xs sm:px-3 sm:text-sm"
             value={source}
             onChange={(e) => setSource(e.target.value)}
           >
-            <option value="all">全部来源</option>
-            <option value="github">GitHub Webhook</option>
-            <option value="update-ports">端口更新</option>
+            <option value="all">{isMobile ? '全部' : '全部来源'}</option>
+            <option value="github">GitHub</option>
+            <option value="update-ports">Lucky</option>
           </select>
+        </div>
+        <div className="min-w-0 w-24 sm:w-32">
           <select
-            className="h-10 w-full rounded-xl border bg-background px-3 text-sm"
+            className="h-10 w-full rounded-md border bg-background px-2 text-xs sm:px-3 sm:text-sm"
             value={level}
             onChange={(e) => setLevel(e.target.value)}
           >
-            <option value="all">全部级别</option>
-            <option value="info">info</option>
-            <option value="warn">warn</option>
-            <option value="error">error</option>
+            <option value="all">{isMobile ? '全部' : '全部级别'}</option>
+            <option value="info">{isMobile ? '信息' : 'info'}</option>
+            <option value="warn">{isMobile ? '警告' : 'warn'}</option>
+            <option value="error">{isMobile ? '错误' : 'error'}</option>
           </select>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="搜索消息或元数据"
-              className="h-10 rounded-xl pl-9"
-            />
-            {keyword ? (
-              <button
-                type="button"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                onClick={() => setKeyword('')}
-                aria-label="清除搜索"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            ) : null}
-          </div>
         </div>
-      </Card>
+      </div>
 
       {isMobile ? (
         <div className="grid gap-3">
@@ -386,6 +388,7 @@ export default function ConsoleWebhookLogsPage() {
                 logs.map((log) => {
                   const metaText = formatMeta(log.meta)
                   const metaView = metaText.length > 160 ? `${metaText.slice(0, 160)}…` : metaText
+                  const ipText = formatIp(log.ip)
                   const levelClass =
                     log.level === 'error'
                       ? 'text-red-500'
@@ -405,8 +408,8 @@ export default function ConsoleWebhookLogsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="text-center text-sm">{log.status ?? '-'}</TableCell>
-                      <TableCell className="text-center text-xs text-muted-foreground" title={log.ip || ''}>
-                        {formatIp(log.ip)}
+                      <TableCell className="text-center text-xs text-muted-foreground" title={ipText === '-' ? '' : ipText}>
+                        {ipText}
                       </TableCell>
                       <TableCell className="min-w-0 text-left text-xs text-muted-foreground" title={metaText}>
                         <div className="truncate">{metaView}</div>

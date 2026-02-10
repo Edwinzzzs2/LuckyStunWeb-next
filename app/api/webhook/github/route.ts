@@ -94,9 +94,9 @@ export async function POST(req: NextRequest) {
               body: JSON.stringify({ id: Number(cronjobId) }),
             })
             const bodyText = await res.text()
-            await log('info', '定时任务返回', { bodyText })
+            await log('info', '触发定时拉取代码任务返回', { bodyText })
           } catch (e: any) {
-            await log('error', '触发定时任务失败', { message: e.message })
+            await log('error', '触发定时拉取代码任务失败', { message: e.message })
           }
 
           if (Number.isFinite(delayMs) && delayMs > 0) {
@@ -107,7 +107,7 @@ export async function POST(req: NextRequest) {
 
         for (const op of operates) {
           try {
-            await log('info', '触发 1Panel 操作', { op })
+            await log('info', `触发 1Panel 操作: ${op}`, { op })
             const res = await fetch(apiUrl, {
               method: 'POST',
               headers: {

@@ -420,16 +420,30 @@ export default function ConsoleSitesPage() {
         <div className="relative min-w-0 flex-1 sm:w-80 sm:flex-none">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            type="search"
+            type="text"
             value={query}
             onChange={(e) => {
               setQuery(e.target.value)
               setPage(1)
             }}
             placeholder="按标题 / URL 搜索"
-            className="min-w-0 pl-9"
+            className="min-w-0 pl-9 pr-9"
             disabled={loading}
           />
+          {query ? (
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+              onClick={() => {
+                setQuery('')
+                setPage(1)
+              }}
+              aria-label="清除搜索"
+              disabled={loading}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          ) : null}
         </div>
         <div className="min-w-0 flex-1 sm:w-64 sm:flex-none">
           <select
@@ -449,21 +463,6 @@ export default function ConsoleSitesPage() {
             ))}
           </select>
         </div>
-        {query || categoryFilter !== 'all' ? (
-          <Button
-            variant="outline"
-            className="rounded-xl"
-            onClick={() => {
-              setQuery('')
-              setCategoryFilter('all')
-              setPage(1)
-            }}
-            disabled={loading}
-          >
-            <X className="h-4 w-4" />
-            清除过滤
-          </Button>
-        ) : null}
       </div>
 
       <SitesMobileList
