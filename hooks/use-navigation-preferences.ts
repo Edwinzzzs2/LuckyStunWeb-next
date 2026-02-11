@@ -39,7 +39,7 @@ export function useNavigationPreferences() {
         clearTimeout(t)
       }
     }
-    const tryImage = (url: string, ms = 2500) =>
+    const tryImage = (url: string, ms = 3000) =>
       new Promise<boolean>((resolve) => {
         const img = new Image()
         let done = false
@@ -69,15 +69,24 @@ export function useNavigationPreferences() {
       const probeUrl = `${targetUrl}/favicon.ico`
       
       let ok = await tryImage(probeUrl)
-      const probes = [probeUrl]
+      const probes = [`${probeUrl} (${ok ? 'ok' : 'fail'})`]
 
       // HTTPS 场景下，如果证书无效导致探测失败，尝试降级到 HTTP (Mixed Content)
       if (!ok && isSecure) {
         const fallbackUrl = 'http://192.168.31.3/favicon.ico'
         const fallbackOk = await tryImage(fallbackUrl)
+        probes.push(`${fallbackUrl} (${fallbackOk ? 'ok' : 'fail'})`)
+        
         if (fallbackOk) {
           ok = true
-          probes.push(fallbackUrl)
+        } else {
+          // 如果图片探测也失败（可能因非图片内容或跨域限制），尝试 fetch no-cors
+          // 注意：Mixed Content 场景下 fetch 也可能被阻断，但这是一种额外的兜底
+          const fallbackFetch = await tryFetch('http://192.168.31.3')
+          probes.push(`http://192.168.31.3 (fetch: ${fallbackFetch ? 'ok' : 'fail'})`)
+          if (fallbackFetch) {
+            ok = true
+          }
         }
       }
 
