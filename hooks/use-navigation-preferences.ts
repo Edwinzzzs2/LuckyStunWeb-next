@@ -27,15 +27,16 @@ export function useNavigationPreferences() {
       setNetwork(storedNetwork)
     }
     const tryImage = (url: string, ms = 3000) =>
-      new Promise<boolean>((resolve) => {
+      new Promise<{ ok: boolean; elapsedMs: number }>((resolve) => {
         const img = new Image()
         let done = false
+        const startedAt = performance.now()
         const t = setTimeout(() => {
           if (done) return
           done = true
           img.onload = null
           img.onerror = null
-          resolve(false)
+          resolve({ ok: false, elapsedMs: Math.round(performance.now() - startedAt) })
         }, ms)
         const finish = (ok: boolean) => {
           if (done) return
@@ -43,17 +44,77 @@ export function useNavigationPreferences() {
           clearTimeout(t)
           img.onload = null
           img.onerror = null
-          resolve(ok)
+          resolve({ ok, elapsedMs: Math.round(performance.now() - startedAt) })
         }
         img.onload = () => finish(true)
         img.onerror = () => finish(false)
         const sep = url.includes('?') ? '&' : '?'
         img.src = `${url}${sep}ts=${Date.now()}`
       })
+    const tryFetch = async (url: string, ms = 3000, mode: RequestMode = 'cors') => {
+      const startedAt = performance.now()
+      const c = new AbortController()
+      const t = setTimeout(() => c.abort(), ms)
+      try {
+        const res = await fetch(url, { mode, cache: 'no-store', signal: c.signal })
+        const contentType = res.headers.get('content-type') || ''
+        let bodySnippet = ''
+        if (contentType.includes('json') || contentType.startsWith('text/')) {
+          const text = await res.text()
+          bodySnippet = text.slice(0, 200)
+        }
+        return {
+          ok: res.ok,
+          status: res.status,
+          type: res.type,
+          elapsedMs: Math.round(performance.now() - startedAt),
+          bodySnippet,
+        }
+      } catch (e) {
+        return {
+          ok: false,
+          status: 0,
+          type: 'error',
+          elapsedMs: Math.round(performance.now() - startedAt),
+          error: e instanceof Error ? e.message : String(e),
+        }
+      } finally {
+        clearTimeout(t)
+      }
+    }
     const detect = async () => {
       const probeUrl = 'http://192.168.31.3/favicon.ico'
-      const ok = await tryImage(probeUrl)
-      const probes = [`${probeUrl} (${ok ? 'ok' : 'fail'})`]
+      const imageProbe = await tryImage(probeUrl)
+      let ok = imageProbe.ok
+      const probes: Array<Record<string, unknown>> = [
+        {
+          url: probeUrl,
+          kind: 'image',
+          ok: imageProbe.ok,
+          elapsedMs: imageProbe.elapsedMs,
+        },
+      ]
+      if (!ok) {
+        const fetchProbe = await tryFetch(probeUrl, 3000, 'cors')
+        probes.push({
+          url: probeUrl,
+          kind: 'fetch',
+          mode: 'cors',
+          ...fetchProbe,
+        })
+        if (!fetchProbe.ok) {
+          const opaqueProbe = await tryFetch(probeUrl, 3000, 'no-cors')
+          probes.push({
+            url: probeUrl,
+            kind: 'fetch',
+            mode: 'no-cors',
+            ...opaqueProbe,
+          })
+          ok = opaqueProbe.ok
+        } else {
+          ok = true
+        }
+      }
 
       const target: NetworkType = ok ? 'internal' : 'main'
       const stored = localStorage.getItem('ui_network') as NetworkType | null
