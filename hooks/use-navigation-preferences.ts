@@ -41,12 +41,38 @@ export function useNavigationPreferences() {
     }
     const detect = async () => {
       const ok = (await tryFetch('http://192.168.31.3')) || (await tryFetch('https://192.168.31.3'))
-      if (ok) {
-        setNetwork((prev) => (prev === 'backup' ? prev : 'internal'))
-        if (localStorage.getItem('ui_network') !== 'backup') localStorage.setItem('ui_network', 'internal')
+      const target: NetworkType = ok ? 'internal' : 'main'
+      const stored = localStorage.getItem('ui_network') as NetworkType | null
+      const postLog = async (meta: Record<string, unknown>) => {
+        try {
+          await fetch('/api/webhook/logs', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({
+              source: 'network',
+              level: 'info',
+              message: '网络自动切换检测',
+              meta,
+            }),
+          })
+        } catch {}
+      }
+      setNetwork((prev) => {
+        const applied = prev === 'backup' ? 'backup' : target
+        const action = prev === 'backup' ? 'keep-backup' : prev === target ? 'stay' : 'switch'
+        const persisted = stored !== 'backup'
+        const persistedChanged = persisted && stored !== target
+        if (prev === 'backup') console.info('[network] keep backup', { ok, prev, target })
+        else if (prev !== target) console.info('[network] switch', { ok, from: prev, to: target })
+        else console.info('[network] stay', { ok, network: prev })
+        void postLog({ ok, prev, target, applied, stored, action, persisted, persistedChanged })
+        return applied
+      })
+      if (stored !== 'backup') {
+        if (stored !== target) console.info('[network] persist', { from: stored, to: target })
+        localStorage.setItem('ui_network', target)
       } else {
-        setNetwork((prev) => (prev === 'backup' ? prev : 'main'))
-        if (localStorage.getItem('ui_network') !== 'backup') localStorage.setItem('ui_network', 'main')
+        console.info('[network] persist skipped', { stored: 'backup', target })
       }
     }
     detect()

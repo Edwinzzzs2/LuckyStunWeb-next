@@ -1,7 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAuthUser } from '@/lib/auth'
 import { query } from '@/lib/db'
-import { logApiCall, logger } from '@/lib/logger'
+import { readJson } from '@/lib/api'
+import { createWebhookLogger, logApiCall, logger } from '@/lib/logger'
+
+type LogBody = {
+  source?: string
+  level?: 'info' | 'warn' | 'error'
+  message?: string
+  meta?: Record<string, unknown>
+  status?: number
+}
 
 export async function GET(req: NextRequest) {
   await logApiCall(req)
@@ -52,5 +61,42 @@ export async function GET(req: NextRequest) {
   } catch (e: any) {
     logger.error('[Webhook Logs] Database error:', e)
     return NextResponse.json({ message: '获取日志失败' }, { status: 500 })
+  }
+}
+
+export async function POST(req: NextRequest) {
+  await logApiCall(req)
+  const user = getAuthUser(req)
+  if (!user) {
+    return NextResponse.json({ message: '需要登录' }, { status: 401 })
+  }
+  if (!user.isAdmin) {
+    return NextResponse.json({ message: '需要管理员权限' }, { status: 403 })
+  }
+
+  const forwarded = req.headers.get('x-forwarded-for') || ''
+  const ip = forwarded.split(',')[0]?.trim() || req.headers.get('x-real-ip') || ''
+
+  const { data, error } = await readJson<LogBody>(req)
+  if (error) return error
+  const source = (data?.source || 'system').trim() || 'system'
+  const level = data?.level || 'info'
+  const message = (data?.message || '').trim()
+  if (!message) {
+    return NextResponse.json({ message: 'message 不能为空' }, { status: 400 })
+  }
+  const normalizedSource = source === 'network' ? 'system' : source
+  const prefix = source === 'network' ? '[网络]' : source === 'system' ? '[系统]' : `[${source}]`
+  const rawMeta = data?.meta && typeof data.meta === 'object' ? data.meta : undefined
+  const meta = normalizedSource === source ? rawMeta : { ...(rawMeta || {}), source }
+  const status = Number.isFinite(data?.status) ? Number(data?.status) : undefined
+
+  try {
+    const log = createWebhookLogger({ source: normalizedSource, prefix, ip })
+    await log(level, message, meta, status)
+    return NextResponse.json({ success: true })
+  } catch (e: any) {
+    logger.error('[Webhook Logs] Log write error:', e)
+    return NextResponse.json({ message: '写入日志失败' }, { status: 500 })
   }
 }
