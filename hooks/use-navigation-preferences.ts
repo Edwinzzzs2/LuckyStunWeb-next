@@ -65,11 +65,9 @@ export function useNavigationPreferences() {
       })
     const detect = async () => {
       const isSecure = window.location.protocol === 'https:'
-      const httpProbe = 'http://192.168.31.3/favicon.ico'
-      const httpsProbe = 'https://192.168.31.3/favicon.ico'
-      const ok = isSecure
-        ? (await tryImage(httpProbe)) || (await tryImage(httpsProbe)) || (await tryFetch('https://192.168.31.3'))
-        : (await tryFetch('http://192.168.31.3')) || (await tryFetch('https://192.168.31.3'))
+      const targetUrl = isSecure ? 'https://192.168.31.3' : 'http://192.168.31.3'
+      const probeUrl = `${targetUrl}/favicon.ico`
+      const ok = await tryImage(probeUrl)
       const target: NetworkType = ok ? 'internal' : 'main'
       const stored = localStorage.getItem('ui_network') as NetworkType | null
       const postLog = async (meta: Record<string, unknown>) => {
@@ -104,7 +102,7 @@ export function useNavigationPreferences() {
           persisted,
           persistedChanged,
           isSecure,
-          probes: isSecure ? [httpProbe, httpsProbe, 'https://192.168.31.3'] : ['http://192.168.31.3', 'https://192.168.31.3'],
+          probes: [probeUrl],
         })
         return applied
       })
