@@ -66,14 +66,6 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   await logApiCall(req)
-  const user = getAuthUser(req)
-  if (!user) {
-    return NextResponse.json({ message: '需要登录' }, { status: 401 })
-  }
-  if (!user.isAdmin) {
-    return NextResponse.json({ message: '需要管理员权限' }, { status: 403 })
-  }
-
   const forwarded = req.headers.get('x-forwarded-for') || ''
   const ip = forwarded.split(',')[0]?.trim() || req.headers.get('x-real-ip') || ''
 
