@@ -26,7 +26,6 @@ export function useNavigationPreferences() {
     if (storedNetwork === 'main' || storedNetwork === 'backup' || storedNetwork === 'internal') {
       setNetwork(storedNetwork)
     }
-    let timer: any
     const tryFetch = async (url: string, ms = 2500) => {
       const c = new AbortController()
       const t = setTimeout(() => c.abort(), ms)
@@ -136,10 +135,6 @@ export function useNavigationPreferences() {
       }
     }
     detect()
-    timer = setInterval(detect, 30000)
-    return () => {
-      if (timer) clearInterval(timer)
-    }
   }, [])
 
   const setNetworkType = useCallback((type: NetworkType) => {
