@@ -67,7 +67,20 @@ export function useNavigationPreferences() {
       const isSecure = window.location.protocol === 'https:'
       const targetUrl = isSecure ? 'https://192.168.31.3' : 'http://192.168.31.3'
       const probeUrl = `${targetUrl}/favicon.ico`
-      const ok = await tryImage(probeUrl)
+      
+      let ok = await tryImage(probeUrl)
+      const probes = [probeUrl]
+
+      // HTTPS 场景下，如果证书无效导致探测失败，尝试降级到 HTTP (Mixed Content)
+      if (!ok && isSecure) {
+        const fallbackUrl = 'http://192.168.31.3/favicon.ico'
+        const fallbackOk = await tryImage(fallbackUrl)
+        if (fallbackOk) {
+          ok = true
+          probes.push(fallbackUrl)
+        }
+      }
+
       const target: NetworkType = ok ? 'internal' : 'main'
       const stored = localStorage.getItem('ui_network') as NetworkType | null
       const postLog = async (meta: Record<string, unknown>) => {
@@ -102,7 +115,7 @@ export function useNavigationPreferences() {
           persisted,
           persistedChanged,
           isSecure,
-          probes: [probeUrl],
+          probes,
         })
         return applied
       })
