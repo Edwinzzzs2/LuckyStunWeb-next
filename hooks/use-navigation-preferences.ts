@@ -39,8 +39,37 @@ export function useNavigationPreferences() {
         clearTimeout(t)
       }
     }
+    const tryImage = (url: string, ms = 2500) =>
+      new Promise<boolean>((resolve) => {
+        const img = new Image()
+        let done = false
+        const t = setTimeout(() => {
+          if (done) return
+          done = true
+          img.onload = null
+          img.onerror = null
+          resolve(false)
+        }, ms)
+        const finish = (ok: boolean) => {
+          if (done) return
+          done = true
+          clearTimeout(t)
+          img.onload = null
+          img.onerror = null
+          resolve(ok)
+        }
+        img.onload = () => finish(true)
+        img.onerror = () => finish(false)
+        const sep = url.includes('?') ? '&' : '?'
+        img.src = `${url}${sep}ts=${Date.now()}`
+      })
     const detect = async () => {
-      const ok = (await tryFetch('http://192.168.31.3')) || (await tryFetch('https://192.168.31.3'))
+      const isSecure = window.location.protocol === 'https:'
+      const httpProbe = 'http://192.168.31.3/favicon.ico'
+      const httpsProbe = 'https://192.168.31.3/favicon.ico'
+      const ok = isSecure
+        ? (await tryImage(httpProbe)) || (await tryImage(httpsProbe)) || (await tryFetch('https://192.168.31.3'))
+        : (await tryFetch('http://192.168.31.3')) || (await tryFetch('https://192.168.31.3'))
       const target: NetworkType = ok ? 'internal' : 'main'
       const stored = localStorage.getItem('ui_network') as NetworkType | null
       const postLog = async (meta: Record<string, unknown>) => {
@@ -65,7 +94,18 @@ export function useNavigationPreferences() {
         if (prev === 'backup') console.info('[network] keep backup', { ok, prev, target })
         else if (prev !== target) console.info('[network] switch', { ok, from: prev, to: target })
         else console.info('[network] stay', { ok, network: prev })
-        void postLog({ ok, prev, target, applied, stored, action, persisted, persistedChanged })
+        void postLog({
+          ok,
+          prev,
+          target,
+          applied,
+          stored,
+          action,
+          persisted,
+          persistedChanged,
+          isSecure,
+          probes: isSecure ? [httpProbe, httpsProbe, 'https://192.168.31.3'] : ['http://192.168.31.3', 'https://192.168.31.3'],
+        })
         return applied
       })
       if (stored !== 'backup') {
