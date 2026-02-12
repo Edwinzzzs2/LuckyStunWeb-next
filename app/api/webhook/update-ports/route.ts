@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { readJson } from '@/lib/api'
 import { query, execute } from '@/lib/db'
 import { createWebhookLogger, logApiCall } from '@/lib/logger'
+import { setSetting } from '@/lib/settings'
 
-type Body = { port: number | null; domains?: string[]; ids?: number[] }
+type Body = { port: number | null; domains?: string[]; ids?: number[]; ip?: string }
 
 function isDomainMatch(url: string | null, targetDomains: string[]) {
   if (!url) return false
@@ -60,22 +61,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ message: '未授权' }, { status: 401 })
   }
 
-  const { data, error } = await readJson<Body>(req)
+  const { data, error } = await readJson<Body & { data?: Body }>(req)
   if (error) {
     await log('error', 'JSON 解析失败', { error: (error as any)?.message || 'unknown' }, 400)
     return error
   }
 
-  await log('info', '处理请求参数', { data })
+  const payload = (data as any)?.data && typeof (data as any)?.data === 'object' ? (data as any).data : data
+  await log('info', '处理请求参数', { data: payload })
 
-  const rawPort = (data as any)?.port
+  const rawPort = (payload as any)?.port
   const port = rawPort === null ? null : rawPort === undefined ? undefined : Number(rawPort)
   if (port !== null && (port === undefined || !Number.isInteger(port) || port < 0 || port > 65535)) {
     await log('warn', '无效端口', { rawPort }, 400)
     return NextResponse.json({ code: 1, message: '端口号应为 0-65535 之间的整数或 null（去除端口号）' }, { status: 400 })
   }
 
-  const rawDomains = (data as any)?.domains
+  const rawDomains = (payload as any)?.domains
   const domains = Array.isArray(rawDomains)
     ? rawDomains.filter((x: unknown) => typeof x === 'string').map((x: string) => x.trim()).filter(Boolean)
     : typeof rawDomains === 'string'
@@ -92,7 +94,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ code: 1, message: `无效的域名格式: ${domain}` }, { status: 400 })
     }
   }
-  const ids = Array.isArray((data as any)?.ids) ? (data as any).ids : []
+  const ids = Array.isArray((payload as any)?.ids) ? (payload as any).ids : []
   if (ids.length > 0) {
     for (const id of ids) {
       if (!Number.isInteger(Number(id)) || Number(id) <= 0) {
@@ -103,6 +105,11 @@ export async function POST(req: NextRequest) {
   }
   
   try {
+    const luckyIp = ((payload as any)?.ip || '').trim()
+    if (luckyIp) await setSetting('lucky_ip', luckyIp)
+    if (port === null) await setSetting('lucky_port', '')
+    else if (typeof port === 'number' && Number.isFinite(port)) await setSetting('lucky_port', String(port))
+
     const sitesToUpdate = await query('SELECT id, url, backup_url, internal_url, logo, category_id FROM sites WHERE update_port_enabled = TRUE')
     if (sitesToUpdate.length === 0) {
       await log('info', '没有开启自动更新端口的站点', undefined, 404)

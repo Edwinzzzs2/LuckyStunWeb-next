@@ -44,7 +44,7 @@ export default function ConsoleIconsPage() {
   }, [icons, keyword])
 
   async function load(targetUrl?: string) {
-    const normalizedUrl = normalizeUrl(targetUrl || activeUrl || inputUrl)
+    const normalizedUrl = normalizeUrl((targetUrl || activeUrl || inputUrl).replace(/\s+/g, ''))
     if (!normalizedUrl) {
       push({ title: '请输入 iconfont 地址', tone: 'warning' })
       return
@@ -178,13 +178,13 @@ export default function ConsoleIconsPage() {
         </div>
         <div className="flex min-w-0 flex-row items-center gap-2">
           <div className="relative min-w-0 flex-1">
-            <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <Input value={inputUrl} onChange={(e) => setInputUrl(e.target.value)} placeholder="例如：https://at.alicdn.com/t/c/font_xxx.css" className="min-w-0 pl-9" />
+            <LinkIcon className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground z-10" />
+            <Input value={inputUrl} onChange={(e) => setInputUrl(e.target.value)} placeholder="例如：https://at.alicdn.com/t/c/font_xxx.css" className="min-w-0 pl-9 font-mono" />
           </div>
           <Button
             className="rounded-xl shrink-0"
             onClick={async () => {
-              const raw = inputUrl.trim()
+              const raw = inputUrl.replace(/\s+/g, '').trim()
               if (!raw) {
                 push({ title: '请输入 iconfont 地址', tone: 'warning' })
                 return

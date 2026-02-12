@@ -26,95 +26,47 @@ export function useNavigationPreferences() {
     if (storedNetwork === 'main' || storedNetwork === 'backup' || storedNetwork === 'internal') {
       setNetwork(storedNetwork)
     }
-    const tryImage = (url: string, ms = 3000) =>
-      new Promise<{ ok: boolean; elapsedMs: number }>((resolve) => {
-        const img = new Image()
-        let done = false
-        const startedAt = performance.now()
-        const t = setTimeout(() => {
-          if (done) return
-          done = true
-          img.onload = null
-          img.onerror = null
-          resolve({ ok: false, elapsedMs: Math.round(performance.now() - startedAt) })
-        }, ms)
-        const finish = (ok: boolean) => {
-          if (done) return
-          done = true
-          clearTimeout(t)
-          img.onload = null
-          img.onerror = null
-          resolve({ ok, elapsedMs: Math.round(performance.now() - startedAt) })
-        }
-        img.onload = () => finish(true)
-        img.onerror = () => finish(false)
-        const sep = url.includes('?') ? '&' : '?'
-        img.src = `${url}${sep}ts=${Date.now()}`
-      })
-    const tryFetch = async (url: string, ms = 3000, mode: RequestMode = 'cors') => {
+    const detect = async () => {
+      const controller = new AbortController()
       const startedAt = performance.now()
-      const c = new AbortController()
-      const t = setTimeout(() => c.abort(), ms)
+      const t = setTimeout(() => controller.abort(), 4000)
+      let ok = false
+      let clientIp = ''
+      let luckyIp = ''
+      let luckyPort = ''
+      let probe: Record<string, unknown> = { url: '/api/network/resolve' }
       try {
-        const res = await fetch(url, { mode, cache: 'no-store', signal: c.signal })
-        const contentType = res.headers.get('content-type') || ''
-        let bodySnippet = ''
-        if (contentType.includes('json') || contentType.startsWith('text/')) {
-          const text = await res.text()
-          bodySnippet = text.slice(0, 200)
+        const res = await fetch('/api/network/resolve', { cache: 'no-store', signal: controller.signal })
+        const text = await res.text()
+        let data: any = null
+        try {
+          data = JSON.parse(text)
+        } catch {
+          data = null
         }
-        return {
-          ok: res.ok,
+        ok = Boolean(data?.isInternal)
+        clientIp = String(data?.clientIp || '')
+        luckyIp = String(data?.luckyIp || '')
+        luckyPort = String(data?.luckyPort || '')
+        probe = {
+          url: '/api/network/resolve',
           status: res.status,
-          type: res.type,
+          ok: res.ok,
           elapsedMs: Math.round(performance.now() - startedAt),
-          bodySnippet,
+          bodySnippet: text.slice(0, 200),
         }
-      } catch (e) {
-        return {
-          ok: false,
+      } catch (e: any) {
+        probe = {
+          url: '/api/network/resolve',
           status: 0,
-          type: 'error',
+          ok: false,
           elapsedMs: Math.round(performance.now() - startedAt),
-          error: e instanceof Error ? e.message : String(e),
+          error: e?.message || 'unknown',
         }
       } finally {
         clearTimeout(t)
       }
-    }
-    const detect = async () => {
-      const probeUrl = 'http://192.168.31.3/favicon.ico'
-      const imageProbe = await tryImage(probeUrl)
-      let ok = imageProbe.ok
-      const probes: Array<Record<string, unknown>> = [
-        {
-          url: probeUrl,
-          kind: 'image',
-          ok: imageProbe.ok,
-          elapsedMs: imageProbe.elapsedMs,
-        },
-      ]
-      if (!ok) {
-        const fetchProbe = await tryFetch(probeUrl, 3000, 'cors')
-        probes.push({
-          url: probeUrl,
-          kind: 'fetch',
-          mode: 'cors',
-          ...fetchProbe,
-        })
-        if (!fetchProbe.ok) {
-          const opaqueProbe = await tryFetch(probeUrl, 3000, 'no-cors')
-          probes.push({
-            url: probeUrl,
-            kind: 'fetch',
-            mode: 'no-cors',
-            ...opaqueProbe,
-          })
-          ok = opaqueProbe.ok
-        } else {
-          ok = true
-        }
-      }
+      const probes = [probe]
 
       const target: NetworkType = ok ? 'internal' : 'main'
       const stored = localStorage.getItem('ui_network') as NetworkType | null
@@ -150,6 +102,9 @@ export function useNavigationPreferences() {
           persisted,
           persistedChanged,
           probes,
+          clientIp,
+          luckyIp,
+          luckyPort,
         })
         return applied
       })
