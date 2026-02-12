@@ -46,6 +46,7 @@ export function createWebhookLogger({
 }
 
 export async function logSystemStartupOnce() {
+  if (process.env.NEXT_PHASE === 'phase-production-build') return
   const holder = globalThis as typeof globalThis & { __systemStartupLogged?: boolean }
   if (holder.__systemStartupLogged) return
   holder.__systemStartupLogged = true
