@@ -65,11 +65,13 @@ export default function ConsoleUsersPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [createUsername, setCreateUsername] = useState('')
   const [createPassword, setCreatePassword] = useState('')
+  const [createPasswordConfirm, setCreatePasswordConfirm] = useState('')
   const [createIsAdmin, setCreateIsAdmin] = useState(false)
   const [creating, setCreating] = useState(false)
 
   const [resetTarget, setResetTarget] = useState<UserRow | null>(null)
   const [resetPassword, setResetPassword] = useState('')
+  const [resetPasswordConfirm, setResetPasswordConfirm] = useState('')
   const [resetting, setResetting] = useState(false)
 
   const [deleteTarget, setDeleteTarget] = useState<UserRow | null>(null)
@@ -116,6 +118,10 @@ export default function ConsoleUsersPage() {
         <label className="text-sm font-medium">密码</label>
         <Input value={createPassword} onChange={(e) => setCreatePassword(e.target.value)} type="password" placeholder="至少 6 位" />
       </div>
+      <div className="grid gap-2">
+        <label className="text-sm font-medium">确认密码</label>
+        <Input value={createPasswordConfirm} onChange={(e) => setCreatePasswordConfirm(e.target.value)} type="password" placeholder="再次输入密码" />
+      </div>
       <div className="flex items-center justify-between rounded-xl border px-4 py-3">
         <div>
           <div className="text-sm font-medium">管理员</div>
@@ -130,6 +136,8 @@ export default function ConsoleUsersPage() {
     <div className="grid gap-2">
       <label className="text-sm font-medium">新密码</label>
       <Input value={resetPassword} onChange={(e) => setResetPassword(e.target.value)} type="password" placeholder="至少 6 位" />
+      <label className="text-sm font-medium">确认新密码</label>
+      <Input value={resetPasswordConfirm} onChange={(e) => setResetPasswordConfirm(e.target.value)} type="password" placeholder="再次输入新密码" />
     </div>
   )
 
@@ -143,6 +151,14 @@ export default function ConsoleUsersPage() {
       push({ title: '请填写必填项', detail: '用户名与密码不能为空', tone: 'warning' })
       return
     }
+    if (createPassword.length < 6) {
+      push({ title: '密码不合法', detail: '密码长度至少为6个字符', tone: 'warning' })
+      return
+    }
+    if (createPassword !== createPasswordConfirm) {
+      push({ title: '两次密码不一致', detail: '请确认密码输入一致', tone: 'warning' })
+      return
+    }
     setCreating(true)
     try {
       await postJson('/api/auth/register', { username, password: createPassword, isAdmin: createIsAdmin })
@@ -150,6 +166,7 @@ export default function ConsoleUsersPage() {
       setCreateOpen(false)
       setCreateUsername('')
       setCreatePassword('')
+      setCreatePasswordConfirm('')
       setCreateIsAdmin(false)
       await load()
     } catch (e: any) {
@@ -165,12 +182,17 @@ export default function ConsoleUsersPage() {
       push({ title: '密码不合法', detail: '新密码长度至少为6个字符', tone: 'warning' })
       return
     }
+    if (resetPassword !== resetPasswordConfirm) {
+      push({ title: '两次密码不一致', detail: '请确认密码输入一致', tone: 'warning' })
+      return
+    }
     setResetting(true)
     try {
       const res = await postJson<{ message?: string }>('/api/auth/update-password', { userId: resetTarget.id, newPassword: resetPassword })
       push({ title: '已重置密码', detail: res?.message || resetTarget.username, tone: 'success' })
       setResetTarget(null)
       setResetPassword('')
+      setResetPasswordConfirm('')
     } catch (e: any) {
       push({ title: '重置失败', detail: e?.message || '请稍后重试', tone: 'danger' })
     } finally {
@@ -338,6 +360,7 @@ export default function ConsoleUsersPage() {
           if (!open) {
             setCreateUsername('')
             setCreatePassword('')
+            setCreatePasswordConfirm('')
             setCreateIsAdmin(false)
           }
           setCreateOpen(open)
@@ -397,6 +420,7 @@ export default function ConsoleUsersPage() {
           if (!open) {
             setResetTarget(null)
             setResetPassword('')
+            setResetPasswordConfirm('')
           }
         }}>
           <SheetContent
@@ -427,6 +451,7 @@ export default function ConsoleUsersPage() {
           if (!open) {
             setResetTarget(null)
             setResetPassword('')
+            setResetPasswordConfirm('')
           }
         }}>
           <DialogContent onOpenAutoFocus={(e) => e.preventDefault()} onCloseAutoFocus={(e) => e.preventDefault()}>
