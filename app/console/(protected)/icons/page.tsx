@@ -156,6 +156,7 @@ export default function ConsoleIconsPage() {
                 {loading ? <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" /> : null}
               </div>
               <div className="text-sm text-muted-foreground">输入 iconfont.css 地址，保存后更新图标与全站样式，点击图标复制名称</div>
+              <div className="text-xs text-muted-foreground">修改链接后需要刷新图标或重启服务后生效</div>
             </div>
           </div>
           <div className="flex items-center gap-2">
